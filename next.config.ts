@@ -23,7 +23,7 @@ export default withSentryConfig(nextConfig, {
 
   org: "delhi-technological-univers-j9",
 
-  project: "nodeflow-nextjs",
+  project: "saku-ai-nextjs",
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
