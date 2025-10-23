@@ -7,6 +7,12 @@ import {
     KeyIcon,
     LogOutIcon,
     StarIcon,
+    HomeIcon,
+    MessageCircleIcon,
+    UsersIcon,
+    BarChart3Icon,
+    SettingsIcon,
+    WorkflowIcon,
 } from "lucide-react";
 import Image from "next/image";     
 import Link from "next/link";
@@ -31,10 +37,40 @@ const menuItems = [
         title: "Main",
         items: [
             {
+                title: "Home",
+                url: "/",
+                icon: HomeIcon,
+            },
+            {
+                title: "New Chat",
+                url: "/chat",
+                icon: MessageCircleIcon,
+            },
+            {
                 title: "Workflows",
                 url: "/workflows",
-                icon: FolderOpenIcon,
+                icon: WorkflowIcon,
             },
+            {
+                title: "Meetings",
+                url: "/meetings",
+                icon: UsersIcon,
+            },
+            {
+                title: "Insights",
+                url: "/insights",
+                icon: BarChart3Icon,
+            },
+            {
+                title: "Settings",
+                url: "/settings",
+                icon: SettingsIcon,
+            },
+        ],
+    },
+    {
+        title: "Management",
+        items: [
             {
                 title: "Credentials",
                 icon: KeyIcon,
@@ -47,7 +83,6 @@ const menuItems = [
             },
         ],
     },
-
 ]; 
 
 
@@ -65,8 +100,8 @@ export const AppSidebar = () => {
                     <SidebarMenuButton asChild className="gap-x-4 h-10 px-4">
                         <Link href="/" prefetch>
                             <Image
-                                src="/logos/logo.svg" alt="NodeFlow" width={30} height={30} />
-                            <span className="font-semibold text-sm">NodeFlow</span>
+                                src="/logos/logo.svg" alt="Saku AI" width={30} height={30} />
+                            <span className="font-semibold text-sm">Saku AI</span>
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -86,7 +121,11 @@ export const AppSidebar = () => {
                                             : pathname.startsWith(item.url)
                                         }
                                         asChild
-                                        className="gap-x-4 h-10 px-4">
+                                        className={`gap-x-4 h-10 px-4 ${
+                                            item.title === "New Chat" 
+                                                ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                                                : ""
+                                        }`}>
                                     <Link href={item.url} prefetch>
                                         <item.icon className="size-4" />
                                         <span>{item.title}</span>

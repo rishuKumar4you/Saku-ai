@@ -181,7 +181,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/home/captainpilot/Desktop/nodeflow/nodeflow/src/generated/prisma",
+      "value": "/home/captainpilot/Desktop/nodeflow/Saku-ai/src/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -195,7 +195,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/home/captainpilot/Desktop/nodeflow/nodeflow/prisma/schema.prisma",
+    "sourceFilePath": "/home/captainpilot/Desktop/nodeflow/Saku-ai/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

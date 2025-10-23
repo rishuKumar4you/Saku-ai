@@ -11,10 +11,12 @@
 import {useTRPC} from '@/trpc/client'
 import {useMutation, useQueryClient, useSuspenseQuery} from '@tanstack/react-query';
 import {toast} from 'sonner'
+import { useWorklowsParams } from './use-workflows-params';
 export const useSuspenceWorkflows = () => {
   const trpc = useTRPC();
+  const [params] = useWorklowsParams();
 
-  return useSuspenseQuery(trpc.workflows.getMany.queryOptions());
+  return useSuspenseQuery(trpc.workflows.getMany.queryOptions(params));
 };
 
 /**
@@ -31,7 +33,7 @@ export const useCreateWorkflow = () => {
           toast.success(`Workflow "${data.name}"
                         created`);
           queryClient.invalidateQueries(
-              trpc.workflows.getMany.queryOptions(),
+              trpc.workflows.getMany.queryOptions({}),
 
           );
         },
