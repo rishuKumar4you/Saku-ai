@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/form';
 
 import { Input } from '@/components/ui/input';
-import { authClient } from '@/lib/auth-client';
+import { authClient, signIn } from '@/lib/auth-client';
 import { cn } from "@/lib/utils";
 import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/auth';
@@ -105,6 +105,7 @@ export function RegisterForm(){
                                         className="w-full"
                                         type="button"
                                         disabled={isPending}
+                                        onClick={signIn}
                                     >
                                         <Image alt="google" src="/logos/google.svg" width={20}  height={20}/>
                                         Continue with Google
