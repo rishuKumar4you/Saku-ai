@@ -10,4 +10,12 @@ export const authClient = createAuthClient({
   // process.env.NEXT_PUBLIC_API_URL for different environments.
   baseURL: process.env.APP_URL || 'http://localhost:3000',
   plugins: [polarClient()],
+
+
 });
+
+export const signIn = async () => {
+  const data = await authClient.signIn.social({
+    provider: 'google',
+  });
+};
