@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -33,15 +33,13 @@ import {
 
 interface Meeting {
     id: string;
-    source: string;
-    name: string;
-    dateTime: string;
-    tags: string[];
-    owner: {
-        name: string;
-        avatar?: string;
-        initials: string;
-    };
+    title?: string;
+    provider?: string;
+    date?: string;
+    tags?: string[];
+    owner?: string;
+    recording?: { status?: string; objectUri?: string; duration?: number };
+    insights?: { status?: string; summary?: string };
 }
 
 interface MeetingsContentProps {
@@ -49,65 +47,35 @@ interface MeetingsContentProps {
     searchQuery: string;
 }
 
-// Mock data for meetings
-const mockMeetings: Meeting[] = [
-    {
-        id: "1",
-        source: "Google Meet",
-        name: "Client Meeting",
-        dateTime: "Wed, Jun 19, 2024",
-        tags: ["Brainstorming"],
-        owner: {
-            name: "Alice Johnson",
-            initials: "AJ"
-        }
-    },
-    {
-        id: "2",
-        source: "Zoom",
-        name: "Edward Meeting",
-        dateTime: "Wed, Jun 19, 2024",
-        tags: ["Brainstorming"],
-        owner: {
-            name: "Bob Smith",
-            initials: "BS"
-        }
-    },
-    {
-        id: "3",
-        source: "Google Meet",
-        name: "Team Meeting",
-        dateTime: "Wed, Jun 19, 2024",
-        tags: ["Brainstorming"],
-        owner: {
-            name: "Carol Davis",
-            initials: "CD"
-        }
-    },
-    {
-        id: "4",
-        source: "Zoom",
-        name: "Boss's Meeting",
-        dateTime: "Wed, Jun 19, 2024",
-        tags: ["Brainstorming"],
-        owner: {
-            name: "David Wilson",
-            initials: "DW"
-        }
+async function fetchMeetings(): Promise<Meeting[]> {
+    try {
+        const resp = await fetch("/api/meetings", { cache: "no-store" });
+        const json = await resp.json();
+        return Array.isArray(json?.meetings) ? json.meetings : [];
+    } catch {
+        return [];
     }
-];
+}
 
 export const MeetingsContent = ({ activeTab, searchQuery }: MeetingsContentProps) => {
     const [selectedMeetings, setSelectedMeetings] = useState<string[]>([]);
+    const [meetings, setMeetings] = useState<Meeting[]>([]);
+    const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const totalPages = 3;
+    const totalPages = 1;
+
+    async function load() {
+        setLoading(true);
+        const data = await fetchMeetings();
+        setMeetings(data);
+        setLoading(false);
+    }
+
+    useEffect(() => { void load(); }, []);
 
     const handleSelectAll = (checked: boolean) => {
-        if (checked) {
-            setSelectedMeetings(mockMeetings.map(meeting => meeting.id));
-        } else {
-            setSelectedMeetings([]);
-        }
+        if (checked) setSelectedMeetings(meetings.map(m => m.id));
+        else setSelectedMeetings([]);
     };
 
     const handleSelectMeeting = (meetingId: string, checked: boolean) => {
@@ -118,10 +86,12 @@ export const MeetingsContent = ({ activeTab, searchQuery }: MeetingsContentProps
         }
     };
 
-    const filteredMeetings = mockMeetings.filter(meeting => 
-        meeting.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        meeting.source.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredMeetings = meetings.filter(meeting => {
+        const name = (meeting.title || "").toLowerCase();
+        const provider = (meeting.provider || "").toLowerCase();
+        const q = searchQuery.toLowerCase();
+        return name.includes(q) || provider.includes(q);
+    });
 
     return (
         <div className="flex-1 p-6">
@@ -150,7 +120,8 @@ export const MeetingsContent = ({ activeTab, searchQuery }: MeetingsContentProps
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
-                <div>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" onClick={load} disabled={loading}>Refresh</Button>
                     <input id="meeting-upload-input" type="file" accept="video/*,audio/*" className="hidden" onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
@@ -181,6 +152,8 @@ export const MeetingsContent = ({ activeTab, searchQuery }: MeetingsContentProps
 
                             // kick off transcription
                             await fetch(`/api/meetings/${meetingId}/transcribe`, { method: 'POST' });
+                            try { alert('Upload received. Transcription started.'); } catch {}
+                            await load();
                         } catch {}
                         (e.target as HTMLInputElement).value = '';
                     }} />
@@ -197,16 +170,12 @@ export const MeetingsContent = ({ activeTab, searchQuery }: MeetingsContentProps
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-12">
-                                <Checkbox
-                                    checked={selectedMeetings.length === mockMeetings.length}
-                                    onCheckedChange={handleSelectAll}
-                                />
+                                <Checkbox checked={selectedMeetings.length === meetings.length && meetings.length > 0} onCheckedChange={handleSelectAll} />
                             </TableHead>
-                            <TableHead>Source</TableHead>
-                            <TableHead>NAME</TableHead>
+                            <TableHead>Provider</TableHead>
+                            <TableHead>Title</TableHead>
                             <TableHead>Date & Time</TableHead>
-                            <TableHead>Tags</TableHead>
-                            <TableHead>Owner</TableHead>
+                            <TableHead>Status</TableHead>
                             <TableHead className="w-12">ACTION</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -221,31 +190,13 @@ export const MeetingsContent = ({ activeTab, searchQuery }: MeetingsContentProps
                                         }
                                     />
                                 </TableCell>
-                                <TableCell className="font-medium">
-                                    {meeting.source}
-                                </TableCell>
-                                <TableCell className="font-medium">
-                                    {meeting.name}
-                                </TableCell>
-                                <TableCell>{meeting.dateTime}</TableCell>
+                                <TableCell className="font-medium">{meeting.provider || '-'}</TableCell>
+                                <TableCell className="font-medium">{meeting.title || meeting.id}</TableCell>
+                                <TableCell>{meeting.date || '-'}</TableCell>
                                 <TableCell>
-                                    <div className="flex gap-1">
-                                        {meeting.tags.map((tag, index) => (
-                                            <Badge key={index} variant="secondary" className="text-xs">
-                                                {tag}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    <div className="flex items-center gap-2">
-                                        <Avatar className="h-6 w-6">
-                                            <AvatarImage src={meeting.owner.avatar} />
-                                            <AvatarFallback className="text-xs">
-                                                {meeting.owner.initials}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                        <span className="text-sm">{meeting.owner.name}</span>
+                                    <div className="flex items-center gap-2 text-xs">
+                                        <Badge variant="secondary">Rec: {meeting.recording?.status || 'idle'}</Badge>
+                                        <Badge variant="secondary">Insights: {meeting.insights?.status || 'idle'}</Badge>
                                     </div>
                                 </TableCell>
                                 <TableCell>
@@ -256,9 +207,9 @@ export const MeetingsContent = ({ activeTab, searchQuery }: MeetingsContentProps
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent>
-                                            <DropdownMenuItem>View Details</DropdownMenuItem>
-                                            <DropdownMenuItem>Edit Meeting</DropdownMenuItem>
-                                            <DropdownMenuItem>Delete Meeting</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={async () => { await fetch(`/api/meetings/${meeting.id}/transcribe`, { method: 'POST' }); await load(); }}>Transcribe</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={async () => { const r = await fetch(`/api/meetings/${meeting.id}/insights`); const j = await r.json(); try { alert(j?.insights?.summary || 'No insights'); } catch {} }}>Insights</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={async () => { await fetch(`/api/meetings/${meeting.id}`, { method: 'DELETE' }); await load(); }}>Delete Meeting</DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>
@@ -270,9 +221,7 @@ export const MeetingsContent = ({ activeTab, searchQuery }: MeetingsContentProps
 
             {/* Pagination */}
             <div className="flex items-center justify-between mt-6">
-                <div className="text-sm text-muted-foreground">
-                    Showing {filteredMeetings.length} of {mockMeetings.length} meetings
-                </div>
+                <div className="text-sm text-muted-foreground">{loading ? 'Loading…' : `Showing ${filteredMeetings.length} of ${meetings.length} meetings`}</div>
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" className="h-8 w-8 p-0">
                         <ChevronsLeft className="h-4 w-4" />

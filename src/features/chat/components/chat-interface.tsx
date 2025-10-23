@@ -22,6 +22,7 @@ export const ChatInterface = () => {
     const [sources, setSources] = useState<{ emails: boolean; calendar: boolean; files: boolean }>({ emails: false, calendar: false, files: false });
     const [convId, setConvId] = useState<string | null>(null);
     const searchParams = useSearchParams();
+    const [gmailCards, setGmailCards] = useState<Array<{ id: string; subject: string; sender: string; date: string; snippet: string }>>([]);
 
     const handleSendMessage = async (content: string) => {
         if (!content.trim()) return;
@@ -136,15 +137,13 @@ export const ChatInterface = () => {
                 }
             }
 
-            // If it's a new conversation and we have a first user message, set the title to that
-            if (convId === null && newMessage.content) {
+            // Ensure convId is set after first save
+            if (convId === null) {
                 try {
                     const res = await fetch('/api/conversations');
                     const data = await res.json();
                     const last = Array.isArray(data?.conversations) ? data.conversations.slice(-1)[0] : null;
-                    if (last?.id) {
-                        setConvId(String(last.id));
-                    }
+                    if (last?.id) setConvId(String(last.id));
                 } catch {}
             }
         } catch (err: any) {
@@ -171,17 +170,57 @@ export const ChatInterface = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
+    async function refreshGmailCards() {
+        try {
+            const resp = await fetch(`/api/integrations/gmail?max_results=5`);
+            const json = await resp.json();
+            const messages: any[] = Array.isArray(json?.messages) ? json.messages : [];
+            setGmailCards(messages.map(m => ({
+                id: String(m.id),
+                subject: String(m.subject || "(No Subject)"),
+                sender: String(m.sender || "Unknown"),
+                date: String(m.date || ""),
+                snippet: String(m.snippet || "")
+            })));
+        } catch {
+            setGmailCards([]);
+        }
+    }
+
+    useEffect(() => {
+        if (sources.emails) void refreshGmailCards(); else setGmailCards([]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sources.emails]);
+
     return (
         <div className="flex flex-col h-full bg-background">
             <ChatHeader />
             <div className="flex-1 overflow-hidden">
+                {sources.emails && gmailCards.length > 0 && (
+                    <div className="px-3 sm:px-6 py-3 space-y-3 max-w-4xl mx-auto">
+                        <div className="text-xs text-muted-foreground">View Email Details ({gmailCards.length})</div>
+                        {gmailCards.map(card => (
+                            <div key={card.id} className="border rounded p-3 bg-background">
+                                <div className="text-sm font-medium">{card.subject}</div>
+                                <div className="text-xs text-muted-foreground">{card.sender} • {card.date}</div>
+                                <div className="text-sm mt-2">{card.snippet}</div>
+                                <div className="mt-3 flex items-center gap-2">
+                                    <button className="text-xs border rounded px-2 py-1" onClick={() => { try { alert('Reply (placeholder)'); } catch {} }}>Reply</button>
+                                    <button className="text-xs border rounded px-2 py-1" onClick={() => { try { alert('Saved draft (placeholder)'); } catch {} }}>Save Draft</button>
+                                    <button className="text-xs border rounded px-2 py-1" onClick={() => { try { alert('Edit manually (placeholder)'); } catch {} }}>Edit Manually</button>
+                                    <a className="text-xs border rounded px-2 py-1" href={`https://mail.google.com/mail/u/0/#search/${encodeURIComponent(card.subject)}`} target="_blank" rel="noreferrer">View in Gmail</a>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
                 {isWelcomeVisible && messages.length === 0 ? (
                     <WelcomeSection onStartChat={handleSendMessage} />
                 ) : (
                     <ChatMessages messages={messages} />
                 )}
             </div>
-            <ChatInput onSendMessage={handleSendMessage} />
+            <ChatInput onSendMessage={handleSendMessage} onSourcesChange={setSources} />
         </div>
     );
 };
