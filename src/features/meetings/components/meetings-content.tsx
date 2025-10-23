@@ -150,10 +150,45 @@ export const MeetingsContent = ({ activeTab, searchQuery }: MeetingsContentProps
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
-                <Button className="gap-2">
-                    <Upload className="h-4 w-4" />
-                    Upload
-                </Button>
+                <div>
+                    <input id="meeting-upload-input" type="file" accept="video/*,audio/*" className="hidden" onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                            // create a meeting first
+                            const fd = new FormData();
+                            fd.set('title', file.name);
+                            const createResp = await fetch('/api/meetings', { method: 'POST', body: fd });
+                            const createJson = await createResp.json();
+                            if (!createResp.ok || !createJson?.id) return;
+                            const meetingId = String(createJson.id);
+
+                            // get signed upload url
+                            const upForm = new FormData();
+                            upForm.set('filename', file.name);
+                            upForm.set('contentType', file.type || 'application/octet-stream');
+                            const urlResp = await fetch(`/api/meetings/${meetingId}/upload-url`, { method: 'POST', body: upForm });
+                            const urlJson = await urlResp.json();
+                            if (!urlResp.ok || !urlJson?.uploadUrl) return;
+
+                            // PUT to signed URL or backend fallback
+                            await fetch(urlJson.uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type || 'application/octet-stream' } });
+
+                            // register recording
+                            const recForm = new FormData();
+                            recForm.set('objectUri', urlJson.objectUri);
+                            await fetch(`/api/meetings/${meetingId}/recording`, { method: 'POST', body: recForm });
+
+                            // kick off transcription
+                            await fetch(`/api/meetings/${meetingId}/transcribe`, { method: 'POST' });
+                        } catch {}
+                        (e.target as HTMLInputElement).value = '';
+                    }} />
+                    <Button className="gap-2" onClick={() => document.getElementById('meeting-upload-input')?.click()}>
+                        <Upload className="h-4 w-4" />
+                        Upload
+                    </Button>
+                </div>
             </div>
 
             {/* Meetings Table */}

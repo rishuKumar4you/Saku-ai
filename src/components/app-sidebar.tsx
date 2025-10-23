@@ -47,6 +47,11 @@ const menuItems = [
                 icon: MessageCircleIcon,
             },
             {
+                title: "Chat History",
+                url: "/chat/history",
+                icon: HistoryIcon,
+            },
+            {
                 title: "Workflows",
                 url: "/workflows",
                 icon: WorkflowIcon,
@@ -60,6 +65,11 @@ const menuItems = [
                 title: "Insights",
                 url: "/insights",
                 icon: BarChart3Icon,
+            },
+            {
+                title: "Documents",
+                url: "/docs",
+                icon: FolderOpenIcon,
             },
             {
                 title: "Settings",
