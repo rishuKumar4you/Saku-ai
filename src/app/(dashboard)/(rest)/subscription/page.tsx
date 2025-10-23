@@ -1,26 +1,14 @@
 "use client";
 
-import { useTRPC } from "@/trpc/client";
-import { useMutation } from "@tanstack/react-query";
-import {toast} from "sonner"
 import { Button } from "@/components/ui/button";
-const Page = () => {
-    const trpc = useTRPC();
-    const testAI = useMutation(trpc.testAi.mutationOptions({
-        onSuccess: () => {
-            toast.success("success");
-        },
-        onError: ({ message }) => {
-            toast.error(message);
-        },
-    }));
-    
 
-return (
-    <Button onClick={() => testAI.mutate()}>
-        Click to test subscriptions
-        </Button>
-    )
+const Page = () => {
+    return (
+        <div className="p-6">
+            <h1 className="text-2xl font-bold mb-4">Subscription</h1>
+            <p className="text-muted-foreground">Subscription management coming soon.</p>
+        </div>
+    );
 }
 
 export default Page;

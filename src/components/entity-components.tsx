@@ -87,3 +87,23 @@ export const EntityContainer = ({
         </div>
     )
 };
+
+interface EntitySearchProps {
+    value: string;
+    onChange: (value: string) => void;
+    placeholder?: string;
+};
+
+export const EntitySearch = ({
+    value,
+    onChange,
+    placeholder ="Search",
+}: EntitySearchProps) => { 
+    
+return (
+    <div className="relative ml-auto">
+        
+    </div>
+)
+
+};
