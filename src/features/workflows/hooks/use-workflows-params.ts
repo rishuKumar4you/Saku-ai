@@ -1,7 +1,7 @@
 import { useQueryStates } from "nuqs";
 import { workflowsParams } from "../params";
 
-export const useWorklowsParams = () => {
+export const useWorkflowsParams = () => {
     
     return useQueryStates(workflowsParams);
 
