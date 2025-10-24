@@ -17,7 +17,7 @@ export const ChatInterface = () => {
     const [isWelcomeVisible, setIsWelcomeVisible] = useState(true);
     const [isStreaming, setIsStreaming] = useState(false);
     const abortRef = useRef<AbortController | null>(null);
-    const [sources, setSources] = useState<{ emails: boolean; calendar: boolean; files: boolean }>({ emails: false, calendar: false, files: false });
+    const [sources, setSources] = useState<{ emails: boolean; calendar: boolean; files: boolean; drive: boolean }>({ emails: false, calendar: false, files: false, drive: false });
     const [convId, setConvId] = useState<string | null>(null);
     const searchParams = useSearchParams();
     const [gmailCards, setGmailCards] = useState<GmailCard[]>([]);
@@ -88,7 +88,7 @@ export const ChatInterface = () => {
                         snippets.push(`Calendar: ${line}`);
                     }
                 }
-                if (sources.files) {
+                if (sources.drive) {
                     try {
                         const r = await fetch(`/api/integrations/drive?max_results=5`);
                         const j = await r.json();
@@ -96,6 +96,17 @@ export const ChatInterface = () => {
                         for (const f of files.slice(0, 3)) {
                             const line = `${f?.name || 'File'} • ${f?.mimeType || ''}`.trim();
                             snippets.push(`Drive: ${line}`);
+                        }
+                    } catch {}
+                }
+                if (sources.files) {
+                    // Local uploaded documents
+                    try {
+                        const r = await fetch(`/api/docs`);
+                        const j = await r.json();
+                        const docs = Array.isArray(j?.docs) ? j.docs : [];
+                        for (const d of docs.slice(0, 3)) {
+                            snippets.push(`Document: ${d?.title || 'Untitled'}`);
                         }
                     } catch {}
                 }

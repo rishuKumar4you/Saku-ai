@@ -43,26 +43,43 @@ export const AISuggestionsSection = () => {
         }
     };
 
+    const handleAction = (suggestion: AISuggestion) => {
+        // Navigate to chat with pre-filled context
+        const query = encodeURIComponent(suggestion.title);
+        window.location.href = `/chat?prompt=${query}`;
+    };
+
     return (
         <Card>
             <CardHeader>
-                <CardTitle>AI Suggestions</CardTitle>
+                <CardTitle className="text-base sm:text-lg">AI Suggestions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-                {suggestions.map((suggestion) => (
-                    <div key={suggestion.id} className="flex items-start justify-between p-4 border border-gray-200 rounded-lg">
-                        <div className="flex-1">
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="font-medium text-gray-900">{suggestion.title}</h3>
-                                {getPriorityBadge(suggestion.priority)}
-                            </div>
-                            <p className="text-sm text-gray-600 mb-3">{suggestion.description}</p>
-                        </div>
-                        <Button size="sm" variant="outline" className="ml-4">
-                            {suggestion.actionText}
-                        </Button>
+                {suggestions.length === 0 ? (
+                    <div className="text-sm text-muted-foreground text-center py-4">
+                        No suggestions available
                     </div>
-                ))}
+                ) : (
+                    suggestions.map((suggestion) => (
+                        <div key={suggestion.id} className="flex flex-col sm:flex-row items-start justify-between gap-3 p-3 sm:p-4 border border-gray-200 rounded-lg">
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="font-medium text-gray-900 text-sm sm:text-base">{suggestion.title}</h3>
+                                    {getPriorityBadge(suggestion.priority)}
+                                </div>
+                                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{suggestion.description}</p>
+                            </div>
+                            <Button 
+                                size="sm" 
+                                variant="outline" 
+                                onClick={() => handleAction(suggestion)}
+                                className="shrink-0 w-full sm:w-auto sm:ml-4"
+                            >
+                                {suggestion.actionText}
+                            </Button>
+                        </div>
+                    ))
+                )}
             </CardContent>
         </Card>
     );

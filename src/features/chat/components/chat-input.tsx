@@ -22,13 +22,13 @@ import {
 
 interface ChatInputProps {
     onSendMessage: (message: string) => void;
-    onSourcesChange?: (sources: { emails: boolean; calendar: boolean; files: boolean }) => void;
+    onSourcesChange?: (sources: { emails: boolean; calendar: boolean; files: boolean; drive: boolean }) => void;
 }
 
 export const ChatInput = ({ onSendMessage, onSourcesChange }: ChatInputProps) => {
     const [message, setMessage] = useState("");
     const [selectedModel, setSelectedModel] = useState("GPT-4");
-    const [sources, setSources] = useState({ emails: false, calendar: false, files: false });
+    const [sources, setSources] = useState({ emails: false, calendar: false, files: false, drive: false });
     const fileInputId = "chat-file-upload-input";
 
     const handleSend = () => {
@@ -78,10 +78,11 @@ export const ChatInput = ({ onSendMessage, onSourcesChange }: ChatInputProps) =>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm" className="gap-2">
                                 <Network className="h-4 w-4" />
-                                {sources.emails || sources.calendar || sources.files ? `Sources: ${[
+                                {sources.emails || sources.calendar || sources.files || sources.drive ? `Sources: ${[
                                     sources.emails ? 'Gmail' : null,
                                     sources.calendar ? 'Calendar' : null,
                                     sources.files ? 'Files' : null,
+                                    sources.drive ? 'Drive' : null,
                                 ].filter(Boolean).join(', ')}` : 'All Sources'}
                                 <ChevronDown className="h-4 w-4" />
                             </Button>
@@ -95,7 +96,7 @@ export const ChatInput = ({ onSendMessage, onSourcesChange }: ChatInputProps) =>
                                 }}
                             >
                                 <Zap className="h-4 w-4 mr-2" />
-                                {sources.emails ? "Emails ✓" : "Emails"}
+                                {sources.emails ? "Gmail ✓" : "Gmail"}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 onClick={() => {
@@ -109,13 +110,23 @@ export const ChatInput = ({ onSendMessage, onSourcesChange }: ChatInputProps) =>
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 onClick={() => {
+                                    const next = { ...sources, drive: !sources.drive };
+                                    setSources(next);
+                                    onSourcesChange?.(next);
+                                }}
+                            >
+                                <Zap className="h-4 w-4 mr-2" />
+                                {sources.drive ? "Drive ✓" : "Drive"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={() => {
                                     const next = { ...sources, files: !sources.files };
                                     setSources(next);
                                     onSourcesChange?.(next);
                                 }}
                             >
                                 <Zap className="h-4 w-4 mr-2" />
-                                {sources.files ? "Files ✓" : "Files"}
+                                {sources.files ? "Documents ✓" : "Documents"}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
