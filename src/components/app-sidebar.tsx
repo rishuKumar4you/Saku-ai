@@ -31,6 +31,7 @@ import {
 
 import { authClient } from "@/lib/auth-client";
 import { useHasActiveSubscription } from "@/features/subscriptions/hooks/use-subscriptions";
+import { UserProfile } from "@/components/user-profile";
 
 const menuItems = [
     {
@@ -150,6 +151,11 @@ export const AppSidebar = () => {
             </SidebarContent>
             <SidebarFooter>
                 <SidebarMenu>
+                    {/* User Profile */}
+                    <SidebarMenuItem>
+                        <UserProfile />
+                    </SidebarMenuItem>
+                    
                     {!hasActiveSubscription && !isLoading && (
                         <SidebarMenuItem>
                             <SidebarMenuButton
