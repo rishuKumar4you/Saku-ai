@@ -6,15 +6,15 @@ const nextConfig: NextConfig = {
   // devIndicators: {
   //   buildActivity: false,  // 👈 this shows the "N" icon
   // },
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/workflows',
-        permanent: false,
-      },
-    ]; 
-  },
+  // async redirects() {
+  //   return [
+  //     {
+  //       source: '/',
+  //       destination: '/',
+  //       permanent: false,
+  //     },
+  //   ]; 
+  // },
 };
 
 export default withSentryConfig(nextConfig, {
