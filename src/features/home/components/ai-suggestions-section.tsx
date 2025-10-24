@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
 
 interface AISuggestion {
     id: string;
@@ -12,31 +13,23 @@ interface AISuggestion {
     actionText: string;
 }
 
-const mockSuggestions: AISuggestion[] = [
-    {
-        id: "1",
-        title: "Review pending approvals",
-        description: "2 high-priority items awaiting your approval for over 15 minutes.",
-        priority: "high",
-        actionText: "Review Now",
-    },
-    {
-        id: "2",
-        title: "Schedule follow-up with Sarah Chen",
-        description: "No response to your email from 3 days ago about Q3 campaign results.",
-        priority: "medium",
-        actionText: "Schedule Meeting",
-    },
-    {
-        id: "3",
-        title: "Prepare for tomorrow's standup",
-        description: "2 high-priority items awaiting your approval for over 15 minutes.",
-        priority: "low",
-        actionText: "Review Now",
-    },
-];
-
 export const AISuggestionsSection = () => {
+    const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
+
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const r = await fetch("/api/dashboard", { cache: "no-store" });
+                const j = await r.json();
+                const list: AISuggestion[] = Array.isArray(j?.data?.suggestions) ? j.data.suggestions : [];
+                if (mounted) setSuggestions(list);
+            } catch {
+                if (mounted) setSuggestions([]);
+            }
+        })();
+        return () => { mounted = false; };
+    }, []);
     const getPriorityBadge = (priority: "high" | "medium" | "low") => {
         switch (priority) {
             case "high":
@@ -56,7 +49,7 @@ export const AISuggestionsSection = () => {
                 <CardTitle>AI Suggestions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-                {mockSuggestions.map((suggestion) => (
+                {suggestions.map((suggestion) => (
                     <div key={suggestion.id} className="flex items-start justify-between p-4 border border-gray-200 rounded-lg">
                         <div className="flex-1">
                             <div className="flex items-center justify-between mb-2">

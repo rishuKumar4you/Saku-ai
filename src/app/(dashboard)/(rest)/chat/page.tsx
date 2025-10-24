@@ -3,25 +3,28 @@ import { HydrateClient } from "@/trpc/server";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { ChatInterface } from "@/features/chat/components/chat-interface";
-import Link from "next/link";
+import { ChatHistorySidebar } from "@/features/chat/components/chat-history-sidebar";
 
-const Page = async() => {
+const Page = async ({ searchParams }: { searchParams: { convId?: string } }) => {
     await requireAuth();
     
+    const convId = searchParams?.convId || null;
+    
     return (
-        <div className="flex flex-col h-full">
-            <HydrateClient>
-                <ErrorBoundary fallback={<p>Error!</p>}>
-                    <Suspense fallback={<p>Loading...</p>}>
-                        <div className="px-4 pt-2 text-xs text-muted-foreground">
-                            <Link href="/chat/history" className="hover:underline">
-                                View chat history →
-                            </Link>
-                        </div>
-                        <ChatInterface />
-                    </Suspense>
-                </ErrorBoundary>
-            </HydrateClient>
+        <div className="flex h-full">
+            {/* Chat History Sidebar */}
+            <ChatHistorySidebar currentConvId={convId} />
+            
+            {/* Main Chat Area */}
+            <div className="flex flex-col flex-1 min-w-0">
+                <HydrateClient>
+                    <ErrorBoundary fallback={<p>Error!</p>}>
+                        <Suspense fallback={<p>Loading...</p>}>
+                            <ChatInterface />
+                        </Suspense>
+                    </ErrorBoundary>
+                </HydrateClient>
+            </div>
         </div>
     );
 };

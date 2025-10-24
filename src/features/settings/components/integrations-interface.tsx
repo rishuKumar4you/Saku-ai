@@ -1,190 +1,122 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Plus, Settings } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-interface Integration {
-    id: string;
-    name: string;
-    description: string;
-    icon: string;
-    status: "connected" | "disconnected";
-    account?: string;
-    action: "manage" | "connect";
-}
-
-const integrations: Integration[] = [
-    {
-        id: "google-calendar",
-        name: "Google Calendar",
-        description: "john@acme.com",
-        icon: "📅",
-        status: "connected",
-        account: "john@acme.com",
-        action: "manage",
-    },
-    {
-        id: "outlook-calendar",
-        name: "Outlook Calendar",
-        description: "Microsoft 365 & Exchange",
-        icon: "📅",
-        status: "disconnected",
-        action: "connect",
-    },
-    {
-        id: "slack",
-        name: "Slack",
-        description: "acme.slack.com",
-        icon: "💬",
-        status: "connected",
-        account: "acme.slack.com",
-        action: "manage",
-    },
-    {
-        id: "discord",
-        name: "Discord",
-        description: "Voice and text chat",
-        icon: "🎮",
-        status: "disconnected",
-        action: "connect",
-    },
-    {
-        id: "notion",
-        name: "Notion",
-        description: "Workspace: Acme Team",
-        icon: "📝",
-        status: "connected",
-        account: "Workspace: Acme Team",
-        action: "manage",
-    },
-    {
-        id: "google-drive",
-        name: "Google Drive",
-        description: "googledrive.com",
-        icon: "💾",
-        status: "connected",
-        account: "googledrive.com",
-        action: "manage",
-    },
-];
-
-const categories = [
-    {
-        title: "Calendar",
-        description: "Connect your calendar apps to automatically sync meetings and events.",
-        integrations: ["google-calendar", "outlook-calendar"],
-    },
-    {
-        title: "Communication",
-        description: "Connect your communication tools to streamline your workflow.",
-        integrations: ["slack", "discord"],
-    },
-    {
-        title: "Productivity",
-        description: "Connect productivity tools to enhance your workflow efficiency.",
-        integrations: ["notion"],
-    },
-    {
-        title: "Storage",
-        description: "Connect your storage solutions to access files seamlessly.",
-        integrations: ["google-drive"],
-    },
-];
+type Connector = { key: string; name: string; connected: boolean };
 
 export const IntegrationsInterface = () => {
     const [searchQuery, setSearchQuery] = useState("");
+    const [connectors, setConnectors] = useState<Connector[]>([]);
+    const [busy, setBusy] = useState<Record<string, boolean>>({});
+    const googleServices = useMemo(() => [
+        { key: "gmail", name: "Gmail", icon: "📧" },
+        { key: "calendar", name: "Google Calendar", icon: "📅" },
+        { key: "drive", name: "Google Drive", icon: "💾" },
+    ], []);
 
-    const filteredIntegrations = integrations.filter(integration =>
-        integration.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    async function refresh() {
+        try {
+            const r = await fetch("/api/connectors", { cache: "no-store" });
+            const j = await r.json();
+            setConnectors(Array.isArray(j?.connectors) ? j.connectors : []);
+        } catch {
+            setConnectors([]);
+        }
+    }
 
-    const getIntegrationById = (id: string) => integrations.find(i => i.id === id);
+    useEffect(() => { void refresh(); }, []);
+
+    async function connect(serviceKey: string) {
+        if (busy[serviceKey]) return;
+        setBusy((b) => ({ ...b, [serviceKey]: true }));
+        try {
+            const r = await fetch(`/api/connectors/${encodeURIComponent(serviceKey)}/auth-url`, { cache: "no-store" });
+            if (!r.ok) {
+                const t = await r.text();
+                console.error("Connect failed:", t);
+                alert("Failed to start OAuth. Check backend URL and redirect URI.");
+                return;
+            }
+            const j = await r.json();
+            if (j?.url) {
+                // Use assign to ensure same-tab navigation
+                window.location.assign(j.url as string);
+            } else {
+                alert("OAuth URL not returned by backend.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Network error starting OAuth.");
+        } finally {
+            setBusy((b) => ({ ...b, [serviceKey]: false }));
+        }
+    }
+
+    async function disconnect(serviceKey: string) {
+        if (busy[serviceKey]) return;
+        setBusy((b) => ({ ...b, [serviceKey]: true }));
+        try {
+            const resp = await fetch("/api/integrations/disconnect", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ service_type: serviceKey }),
+            });
+            if (!resp.ok) {
+                const t = await resp.text();
+                console.error('Disconnect failed', t);
+                alert("Failed to disconnect. See console for details.");
+            }
+            await refresh();
+        } catch (e) { console.error(e); alert("Network error disconnecting."); }
+        finally { setBusy((b) => ({ ...b, [serviceKey]: false })); }
+    }
+
+    const filtered = useMemo(() => googleServices.filter(it => it.name.toLowerCase().includes(searchQuery.toLowerCase())), [googleServices, searchQuery]);
+
+    function isConnected(key: string) {
+        return !!connectors.find(c => c.key === key && c.connected);
+    }
 
     return (
-        <div className="max-w-6xl">
-            {/* Header */}
+        <div className="max-w-3xl">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">Integrations</h1>
-                <p className="text-gray-600 mt-2">
-                    Manage your personal information, preferences, and account settings.
-                </p>
+                <p className="text-gray-600 mt-2">Connect Google services to enable email, files, and calendar.</p>
             </div>
 
-            {/* Search and Add Integration */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex-1 max-w-md">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input
-                            placeholder="Search integrations..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10"
-                        />
+                        <Input placeholder="Search integrations..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
                     </div>
                 </div>
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add integration
-                </Button>
             </div>
 
-            {/* Integration Categories */}
-            <div className="space-y-8">
-                {categories.map((category) => (
-                    <div key={category.title} className="bg-white border border-gray-200 rounded-lg p-6">
-                        <div className="mb-6">
-                            <h2 className="text-xl font-semibold text-gray-900">{category.title}</h2>
-                            <p className="text-gray-600 mt-1">{category.description}</p>
+            <div className="space-y-4">
+                {filtered.map(svc => (
+                    <div key={svc.key} className="flex items-center justify-between p-4 border rounded">
+                        <div className="flex items-center gap-3">
+                            <div className="text-2xl">{svc.icon}</div>
+                            <div>
+                                <div className="font-medium">{svc.name}</div>
+                                <div className="text-sm text-muted-foreground">{isConnected(svc.key) ? "Connected" : "Disconnected"}</div>
+                            </div>
                         </div>
-
-                        <div className="space-y-4">
-                            {category.integrations.map((integrationId) => {
-                                const integration = getIntegrationById(integrationId);
-                                if (!integration) return null;
-
-                                return (
-                                    <div
-                                        key={integration.id}
-                                        className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
-                                    >
-                                        <div className="flex items-center space-x-4">
-                                            <div className="text-2xl">{integration.icon}</div>
-                                            <div>
-                                                <h3 className="font-medium text-gray-900">
-                                                    {integration.name}
-                                                </h3>
-                                                <div className="flex items-center space-x-2 mt-1">
-                                                    {integration.status === "connected" && (
-                                                        <>
-                                                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                                            <span className="text-sm text-green-600">Connected</span>
-                                                        </>
-                                                    )}
-                                                    <span className="text-sm text-gray-500">
-                                                        {integration.description}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            {integration.action === "manage" ? (
-                                                <Button variant="outline" size="sm">
-                                                    <Settings className="w-4 h-4 mr-2" />
-                                                    Manage
-                                                </Button>
-                                            ) : (
-                                                <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                                                    <Plus className="w-4 h-4 mr-2" />
-                                                    Connect
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                        <div className="flex gap-2">
+                            {isConnected(svc.key) ? (
+                                <Button variant="outline" onClick={() => disconnect(svc.key)} disabled={!!busy[svc.key]}>
+                                    {busy[svc.key] ? "Disconnecting…" : "Disconnect"}
+                                </Button>
+                            ) : (
+                                <Button onClick={() => connect(svc.key)} disabled={!!busy[svc.key]}>
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    {busy[svc.key] ? "Connecting…" : "Connect"}
+                                </Button>
+                            )}
                         </div>
                     </div>
                 ))}

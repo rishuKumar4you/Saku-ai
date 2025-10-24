@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { Clock, Users, FileText, Phone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -12,42 +13,33 @@ interface ScheduleItem {
     type: "meeting" | "review" | "call";
 }
 
-const mockSchedule: ScheduleItem[] = [
-    {
-        id: "1",
-        title: "Team Standup",
-        time: "9:00 AM",
-        duration: "15 min",
-        participants: 8,
-        type: "meeting",
-    },
-    {
-        id: "2",
-        title: "Review marketing budget proposal",
-        time: "9:00 AM",
-        duration: "15 min",
-        participants: 8,
-        type: "review",
-    },
-    {
-        id: "3",
-        title: "Client Demo Call",
-        time: "9:00 AM",
-        duration: "15 min",
-        participants: 8,
-        type: "call",
-    },
-    {
-        id: "4",
-        title: "Client Demo Call",
-        time: "9:00 AM",
-        duration: "15 min",
-        participants: 8,
-        type: "call",
-    },
-];
-
 export const TodayScheduleSection = () => {
+    const [events, setEvents] = useState<any[]>([]);
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const r = await fetch("/api/dashboard", { cache: "no-store" });
+                const j = await r.json();
+                if (mounted) setEvents(Array.isArray(j?.data?.calendarEvents) ? j.data.calendarEvents : []);
+            } catch {
+                if (mounted) setEvents([]);
+            }
+        })();
+        return () => { mounted = false; };
+    }, []);
+
+    const items: ScheduleItem[] = useMemo(() => {
+        const list: ScheduleItem[] = [];
+        for (const e of (events || []).slice(0, 8)) {
+            const start = (e?.start?.dateTime || e?.start || "").toString();
+            const end = (e?.end?.dateTime || e?.end || "").toString();
+            const title = (e?.summary || "Event").toString();
+            const duration = start && end ? "30 min" : ""; // placeholder if no duration
+            list.push({ id: String(e?.id || Math.random()), title, time: start, duration, participants: 0, type: "meeting" });
+        }
+        return list;
+    }, [events]);
     const getIcon = (type: "meeting" | "review" | "call") => {
         switch (type) {
             case "meeting":
@@ -67,7 +59,7 @@ export const TodayScheduleSection = () => {
                 <CardTitle>Today Schedule</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-                {mockSchedule.map((item) => (
+                {items.map((item) => (
                     <div key={item.id} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
                         <div className="flex-shrink-0">
                             {getIcon(item.type)}
@@ -77,7 +69,7 @@ export const TodayScheduleSection = () => {
                             <div className="flex items-center space-x-4 text-sm text-gray-600">
                                 <div className="flex items-center space-x-1">
                                     <Clock className="w-4 h-4" />
-                                    <span>{item.time} • {item.duration}</span>
+                                    <span>{item.time} {item.duration ? `• ${item.duration}` : ""}</span>
                                 </div>
                                 <div className="flex items-center space-x-1">
                                     <Users className="w-4 h-4" />

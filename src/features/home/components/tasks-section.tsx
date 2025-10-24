@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Clock, Check, Plus, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,76 +23,50 @@ interface Approval {
     completed: boolean;
 }
 
-const mockTasks: Task[] = [
-    {
-        id: "1",
-        title: "Review marketing Budget proposal",
-        time: "Today 3:00",
-        priority: "high",
-        completed: true,
-    },
-    {
-        id: "2",
-        title: "Review marketing Budget proposal",
-        time: "Today 3:00",
-        priority: "low",
-        completed: true,
-    },
-    {
-        id: "3",
-        title: "Review marketing Budget proposal",
-        time: "Today 3:00",
-        priority: "low",
-        completed: true,
-    },
-    {
-        id: "4",
-        title: "Review marketing Budget proposal",
-        time: "Today 3:00",
-        priority: "low",
-        completed: true,
-    },
-];
-
-const mockApprovals: Approval[] = [
-    {
-        id: "1",
-        title: "Response to Client Inquiry",
-        description: "Thank you for your interest in our product. I'd be happy...",
-        priority: "high",
-        completed: false,
-    },
-    {
-        id: "2",
-        title: "Response to Client Inquiry",
-        description: "Thank you for your interest in our product. I'd be happy...",
-        priority: "low",
-        completed: false,
-    },
-    {
-        id: "3",
-        title: "Response to Client Inquiry",
-        description: "Thank you for your interest in our product. I'd be happy...",
-        priority: "low",
-        completed: false,
-    },
-    {
-        id: "4",
-        title: "Response to Client Inquiry",
-        description: "Thank you for your interest in our product. I'd be happy...",
-        priority: "low",
-        completed: false,
-    },
-];
-
 interface TasksSectionProps {
     activeTab: "tasks" | "approvals";
     onTabChange: (tab: "tasks" | "approvals") => void;
 }
 
 export const TasksSection = ({ activeTab, onTabChange }: TasksSectionProps) => {
-    const [tasks, setTasks] = useState<Task[]>(mockTasks);
-    const [approvals, setApprovals] = useState<Approval[]>(mockApprovals);
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [approvals, setApprovals] = useState<Approval[]>([]);
+
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const r = await fetch("/api/dashboard", { cache: "no-store" });
+                const j = await r.json();
+                const msgs: any[] = Array.isArray(j?.data?.gmailMessages) ? j.data.gmailMessages : [];
+                const t: Task[] = msgs.slice(0, 5).map((m: any, i: number) => ({
+                    id: String(m?.id || i),
+                    title: `Reply to: ${String(m?.subject || "(No Subject)")}`,
+                    time: String(m?.date || ""),
+                    priority: "low",
+                    completed: false,
+                }));
+                const cals: any[] = Array.isArray(j?.data?.calendarEvents) ? j.data.calendarEvents : [];
+                const a: Approval[] = cals.slice(0, 5).map((e: any, i: number) => ({
+                    id: String(e?.id || i),
+                    title: String(e?.summary || "Calendar Event"),
+                    description: String(e?.start?.dateTime || e?.start || ""),
+                    priority: "high",
+                    completed: false,
+                }));
+                if (mounted) {
+                    setTasks(t);
+                    setApprovals(a);
+                }
+            } catch {
+                if (mounted) {
+                    setTasks([]);
+                    setApprovals([]);
+                }
+            }
+        })();
+        return () => { mounted = false; };
+    }, []);
 
     const handleTaskComplete = (taskId: string) => {
         setTasks(prev => prev.map(task => 
@@ -116,16 +90,16 @@ export const TasksSection = ({ activeTab, onTabChange }: TasksSectionProps) => {
     return (
         <Card>
             <CardHeader>
-                <div className="flex items-center justify-between">
-                    <CardTitle>Tasks</CardTitle>
+                <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-base sm:text-lg">Tasks</CardTitle>
                     <div className="flex items-center space-x-2">
                         <div className="flex items-center space-x-1">
                             <AlertTriangle className="w-4 h-4 text-red-500" />
                             <span className="text-red-500 text-sm font-medium">2</span>
                         </div>
-                        <Button size="sm">
-                            <Plus className="w-4 h-4 mr-2" />
-                            New Task
+                        <Button size="sm" className="shrink-0">
+                            <Plus className="w-4 h-4 sm:mr-2" />
+                            <span className="hidden sm:inline">New Task</span>
                         </Button>
                     </div>
                 </div>
@@ -139,23 +113,26 @@ export const TasksSection = ({ activeTab, onTabChange }: TasksSectionProps) => {
                     
                     <TabsContent value="tasks" className="space-y-3 mt-4">
                         {tasks.map((task) => (
-                            <div key={task.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                                <div className="flex-1">
-                                    <div className="flex items-center space-x-2 mb-1">
-                                        <Clock className="w-4 h-4 text-gray-500" />
-                                        <span className="text-sm text-gray-600">{task.time}</span>
+                            <div key={task.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border border-gray-200 rounded-lg">
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center flex-wrap gap-2 mb-1">
+                                        <div className="flex items-center space-x-1">
+                                            <Clock className="w-4 h-4 text-gray-500" />
+                                            <span className="text-sm text-gray-600">{task.time}</span>
+                                        </div>
                                         {getPriorityBadge(task.priority)}
                                     </div>
-                                    <h3 className="font-medium text-gray-900">{task.title}</h3>
+                                    <h3 className="font-medium text-gray-900 text-sm sm:text-base truncate">{task.title}</h3>
                                 </div>
                                 <Button 
                                     size="sm" 
                                     variant="outline"
                                     onClick={() => handleTaskComplete(task.id)}
-                                    className="flex items-center space-x-1"
+                                    className="flex items-center justify-center space-x-1 shrink-0 w-full sm:w-auto"
                                 >
                                     <Check className="w-4 h-4 text-green-600" />
-                                    <span>Mark As Complete</span>
+                                    <span className="hidden sm:inline">Mark As Complete</span>
+                                    <span className="sm:hidden">Complete</span>
                                 </Button>
                             </div>
                         ))}
@@ -163,22 +140,23 @@ export const TasksSection = ({ activeTab, onTabChange }: TasksSectionProps) => {
                     
                     <TabsContent value="approvals" className="space-y-3 mt-4">
                         {approvals.map((approval) => (
-                            <div key={approval.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                                <div className="flex-1">
+                            <div key={approval.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border border-gray-200 rounded-lg">
+                                <div className="flex-1 min-w-0">
                                     <div className="flex items-center space-x-2 mb-1">
                                         {getPriorityBadge(approval.priority)}
                                     </div>
-                                    <h3 className="font-medium text-gray-900 mb-1">{approval.title}</h3>
-                                    <p className="text-sm text-gray-600">{approval.description}</p>
+                                    <h3 className="font-medium text-gray-900 mb-1 text-sm sm:text-base">{approval.title}</h3>
+                                    <p className="text-sm text-gray-600 line-clamp-2">{approval.description}</p>
                                 </div>
                                 <Button 
                                     size="sm" 
                                     variant="outline"
                                     onClick={() => handleApprovalComplete(approval.id)}
-                                    className="flex items-center space-x-1"
+                                    className="flex items-center justify-center space-x-1 shrink-0 w-full sm:w-auto"
                                 >
                                     <Check className="w-4 h-4 text-green-600" />
-                                    <span>Mark As Approve</span>
+                                    <span className="hidden sm:inline">Mark As Approve</span>
+                                    <span className="sm:hidden">Approve</span>
                                 </Button>
                             </div>
                         ))}

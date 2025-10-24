@@ -1,20 +1,18 @@
 "use client";
 
+// @ts-ignore react types are available at build time
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { toast } from "sonner";
 import { ChatHeader } from "./chat-header";
 import { ChatMessages } from "./chat-messages";
 import { ChatInput } from "./chat-input";
 import { WelcomeSection } from "./welcome-section";
 
+type ChatMessage = { id: string; content: string; isUser: boolean; timestamp: Date };
+type GmailCard = { id: string; subject: string; sender: string; date: string; snippet: string; threadId?: string };
+
 export const ChatInterface = () => {
-    const [messages, setMessages] = useState<Array<{
-        id: string;
-        content: string;
-        isUser: boolean;
-        timestamp: Date;
-    }>>([]);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
     
     const [isWelcomeVisible, setIsWelcomeVisible] = useState(true);
     const [isStreaming, setIsStreaming] = useState(false);
@@ -22,7 +20,8 @@ export const ChatInterface = () => {
     const [sources, setSources] = useState<{ emails: boolean; calendar: boolean; files: boolean }>({ emails: false, calendar: false, files: false });
     const [convId, setConvId] = useState<string | null>(null);
     const searchParams = useSearchParams();
-    const [gmailCards, setGmailCards] = useState<Array<{ id: string; subject: string; sender: string; date: string; snippet: string }>>([]);
+    const [gmailCards, setGmailCards] = useState<GmailCard[]>([]);
+    const [connectors, setConnectors] = useState<Array<{ key: string; name: string; connected: boolean }>>([]);
 
     const handleSendMessage = async (content: string) => {
         if (!content.trim()) return;
@@ -34,7 +33,7 @@ export const ChatInterface = () => {
             timestamp: new Date(),
         };
         
-        setMessages(prev => [...prev, newMessage]);
+        setMessages((prev: ChatMessage[]) => [...prev, newMessage]);
         setIsWelcomeVisible(false);
         if (!convId) {
             try {
@@ -48,7 +47,7 @@ export const ChatInterface = () => {
         try {
             await fetchFinalAnswer(content.trim());
         } catch (err: any) {
-            toast.error(err?.message || "Failed to stream response");
+            notifyError(err?.message || "Failed to stream response");
         }
     };
 
@@ -61,7 +60,7 @@ export const ChatInterface = () => {
         // Create placeholder assistant message to stream into
         const assistantId = `assistant-${Date.now()}`;
         const createdAt = new Date();
-        setMessages(prev => [
+        setMessages((prev: ChatMessage[]) => [
             ...prev,
             { id: assistantId, content: "", isUser: false, timestamp: createdAt },
         ]);
@@ -71,6 +70,7 @@ export const ChatInterface = () => {
             // Optionally blend Gmail/Calendar snippets
             try {
                 const snippets: string[] = [];
+                // Remove redundant reconnect banner: rely on Settings status only
                 if (sources.emails) {
                     const r = await fetch(`/api/integrations/gmail?max_results=5`);
                     const j = await r.json();
@@ -87,6 +87,17 @@ export const ChatInterface = () => {
                         const line = `${e?.summary || 'Event'} on ${e?.start || ''}`.trim();
                         snippets.push(`Calendar: ${line}`);
                     }
+                }
+                if (sources.files) {
+                    try {
+                        const r = await fetch(`/api/integrations/drive?max_results=5`);
+                        const j = await r.json();
+                        const files = Array.isArray(j?.files) ? j.files : [];
+                        for (const f of files.slice(0, 3)) {
+                            const line = `${f?.name || 'File'} • ${f?.mimeType || ''}`.trim();
+                            snippets.push(`Drive: ${line}`);
+                        }
+                    } catch {}
                 }
                 if (snippets.length) {
                     augmented = `${prompt}\n\nReference Snippets:\n${snippets.join('\n')}`;
@@ -124,7 +135,7 @@ export const ChatInterface = () => {
                         const parsed = JSON.parse(payload as string);
                         if (parsed?.type === "token") {
                             const token = String(parsed?.value ?? "");
-                            setMessages(prev => prev.map(m => (
+                            setMessages((prev: ChatMessage[]) => prev.map((m: ChatMessage) => (
                                 m.id === assistantId ? { ...m, content: m.content + token } : m
                             )));
                         } else if (parsed?.type === "done") {
@@ -148,7 +159,7 @@ export const ChatInterface = () => {
             }
         } catch (err: any) {
             if (err?.name !== "AbortError") {
-                toast.error(err?.message || "Failed to stream response");
+                notifyError(err?.message || "Failed to stream response");
             }
         } finally {
             setIsStreaming(false);
@@ -180,7 +191,8 @@ export const ChatInterface = () => {
                 subject: String(m.subject || "(No Subject)"),
                 sender: String(m.sender || "Unknown"),
                 date: String(m.date || ""),
-                snippet: String(m.snippet || "")
+                snippet: String(m.snippet || ""),
+                threadId: m.threadId ? String(m.threadId) : undefined,
             })));
         } catch {
             setGmailCards([]);
@@ -192,6 +204,34 @@ export const ChatInterface = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sources.emails]);
 
+    async function ensureGmailConnected() {
+        try {
+            const r = await fetch('/api/connectors');
+            const j = await r.json();
+            const items: any[] = Array.isArray(j?.connectors) ? j.connectors : [];
+            setConnectors(items);
+            const gmail = items.find((x:any) => x.key === 'gmail');
+            return !!gmail?.connected;
+        } catch { return false; }
+    }
+
+    async function connectGmail() {
+        try {
+            const r = await fetch('/api/connectors/gmail/auth-url');
+            const j = await r.json();
+            if (j?.url) window.location.href = j.url;
+        } catch {}
+    }
+
+    function notifyError(message: string) {
+        try {
+            const anyWin = window as unknown as { toast?: { error?: (m: string) => void } };
+            if (anyWin.toast?.error) anyWin.toast.error(message); else console.error(message);
+        } catch {
+            console.error(message);
+        }
+    }
+
     return (
         <div className="flex flex-col h-full bg-background">
             <ChatHeader />
@@ -199,19 +239,43 @@ export const ChatInterface = () => {
                 {sources.emails && gmailCards.length > 0 && (
                     <div className="px-3 sm:px-6 py-3 space-y-3 max-w-4xl mx-auto">
                         <div className="text-xs text-muted-foreground">View Email Details ({gmailCards.length})</div>
-                        {gmailCards.map(card => (
+                        {gmailCards.map((card: GmailCard) => (
                             <div key={card.id} className="border rounded p-3 bg-background">
                                 <div className="text-sm font-medium">{card.subject}</div>
                                 <div className="text-xs text-muted-foreground">{card.sender} • {card.date}</div>
                                 <div className="text-sm mt-2">{card.snippet}</div>
                                 <div className="mt-3 flex items-center gap-2">
-                                    <button className="text-xs border rounded px-2 py-1" onClick={() => { try { alert('Reply (placeholder)'); } catch {} }}>Reply</button>
-                                    <button className="text-xs border rounded px-2 py-1" onClick={() => { try { alert('Saved draft (placeholder)'); } catch {} }}>Save Draft</button>
+                                    <button className="text-xs border rounded px-2 py-1" onClick={async () => {
+                                        // quick prompt-based reply
+                                        const to = window.prompt('Reply to (email):', card.sender.replace(/.*<([^>]+)>.*/, '$1')) || '';
+                                        const subject = `Re: ${card.subject}`;
+                                        const body = window.prompt('Message body:', 'Thanks for the update!') || '';
+                                        if (!to) return;
+                                        await fetch('/api/integrations/gmail/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to, subject, body, threadId: card.threadId }) });
+                                    }}>Reply</button>
+                                    <button className="text-xs border rounded px-2 py-1" onClick={async () => {
+                                        const to = window.prompt('Draft to (email):', card.sender.replace(/.*<([^>]+)>.*/, '$1')) || '';
+                                        const subject = `Re: ${card.subject}`;
+                                        const body = window.prompt('Draft body:', '') || '';
+                                        if (!to) return;
+                                        await fetch('/api/integrations/gmail/draft', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to, subject, body, threadId: card.threadId }) });
+                                    }}>Save Draft</button>
                                     <button className="text-xs border rounded px-2 py-1" onClick={() => { try { alert('Edit manually (placeholder)'); } catch {} }}>Edit Manually</button>
                                     <a className="text-xs border rounded px-2 py-1" href={`https://mail.google.com/mail/u/0/#search/${encodeURIComponent(card.subject)}`} target="_blank" rel="noreferrer">View in Gmail</a>
                                 </div>
                             </div>
                         ))}
+                    </div>
+                )}
+                {sources.emails && gmailCards.length === 0 && (
+                    <div className="px-3 sm:px-6 py-3 max-w-4xl mx-auto">
+                        <div className="border rounded p-4 bg-background flex items-center justify-between">
+                            <div>
+                                <div className="font-medium">Connect Gmail</div>
+                                <div className="text-sm text-muted-foreground">Authorize Gmail to fetch messages and send replies.</div>
+                            </div>
+                            <button className="text-sm border rounded px-3 py-1" onClick={connectGmail}>Connect</button>
+                        </div>
                     </div>
                 )}
                 {isWelcomeVisible && messages.length === 0 ? (

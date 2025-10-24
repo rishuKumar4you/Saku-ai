@@ -1,30 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const backend = process.env.NEXT_PUBLIC_BACKEND_URL;
-  if (!backend)
-    return NextResponse.json(
-      { error: "Backend not configured" },
-      { status: 500 }
-    );
+const backendBase = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080").replace(/\/$/, "");
 
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
-    const formData = await request.formData();
-    const resp = await fetch(
-      `${backend.replace(/\/$/, "")}/meetings/${params.id}/agenda`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+    const form = await request.formData();
+    const resp = await fetch(`${backendBase}/meetings/${id}/agenda`, { method: "POST", body: form });
     const json = await resp.json();
     return NextResponse.json(json, { status: resp.status });
-  } catch (error) {
-    console.error("Error adding agenda:", error);
-    return NextResponse.json({ error: "Failed to add agenda" }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Failed to add agenda" }, { status: 502 });
+  }
+}
+
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  try {
+    const body = await request.json();
+    const resp = await fetch(`${backendBase}/meetings/${id}/agenda/${body.agenda_id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const json = await resp.json();
+    return NextResponse.json(json, { status: resp.status });
+  } catch {
+    return NextResponse.json({ error: "Failed to edit agenda" }, { status: 502 });
+  }
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const body = await request.json();
+  try {
+    const resp = await fetch(`${backendBase}/meetings/${id}/agenda/${body.agenda_id}`, { method: "DELETE" });
+    const json = await resp.json();
+    return NextResponse.json(json, { status: resp.status });
+  } catch {
+    return NextResponse.json({ error: "Failed to delete agenda" }, { status: 502 });
   }
 }
 

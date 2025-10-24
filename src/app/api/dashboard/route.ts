@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
-  const backend = process.env.NEXT_PUBLIC_BACKEND_URL;
-  if (!backend)
-    return NextResponse.json(
-      { error: "Backend not configured" },
-      { status: 500 }
-    );
+  const backend = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
 
   try {
+    // Build URLs
+    const base = backend.replace(/\/$/, "");
+    const nowIso = new Date().toISOString();
+    const gmailUrl = `${base}/integrations/gmail/messages?max_results=15&query=${encodeURIComponent("is:unread newer_than:7d")}`;
+    const calendarUrl = `${base}/integrations/calendar/events?max_results=25&time_min=${encodeURIComponent(nowIso)}`;
+    const driveUrl = `${base}/integrations/drive/files?max_results=15`;
+
     // Fetch data from various Google integrations
-    const [gmailResp, calendarResp, tasksResp] = await Promise.allSettled([
-      fetch(`${backend.replace(/\/$/, "")}/integrations/gmail/messages?max_results=10`),
-      fetch(`${backend.replace(/\/$/, "")}/integrations/calendar/events?max_results=10`),
-      fetch(`${backend.replace(/\/$/, "")}/integrations/tasks`).catch(() => null),
+    const [gmailResp, calendarResp, driveResp] = await Promise.allSettled([
+      fetch(gmailUrl),
+      fetch(calendarUrl),
+      fetch(driveUrl),
     ]);
 
     const gmailMessages =
@@ -26,17 +28,64 @@ export async function GET(request: NextRequest) {
         ? await calendarResp.value.json().then((d) => d.events || [])
         : [];
 
-    const tasks =
-      tasksResp.status === "fulfilled" && tasksResp.value?.ok
-        ? await tasksResp.value.json().then((d) => d.tasks || [])
+    const driveFiles =
+      driveResp.status === "fulfilled" && driveResp.value?.ok
+        ? await driveResp.value.json().then((d) => d.files || [])
         : [];
+
+    // Derive lightweight suggestions for the next 7 days
+    const suggestions = [] as Array<{ id: string; title: string; description: string; priority: "high"|"medium"|"low"; actionText: string }>;
+
+    try {
+      const gm = Array.isArray(gmailMessages) ? gmailMessages.slice(0, 5) : [];
+      for (const m of gm) {
+        const subj = (m?.subject || "(No Subject)").toString();
+        const from = (m?.sender || "").toString();
+        suggestions.push({
+          id: `gmail-${m?.id ?? Math.random()}`,
+          title: `Reply to: ${subj}`,
+          description: from ? `From ${from}` : "Unread email in the last 7 days",
+          priority: "medium",
+          actionText: "Reply",
+        });
+      }
+    } catch {}
+
+    try {
+      const upcoming = Array.isArray(calendarEvents) ? calendarEvents.slice(0, 5) : [];
+      for (const e of upcoming) {
+        const title = (e?.summary || "Event").toString();
+        const when = (e?.start?.dateTime || e?.start || "").toString();
+        suggestions.push({
+          id: `cal-${e?.id ?? Math.random()}`,
+          title: `Upcoming: ${title}`,
+          description: when ? `Starts ${when}` : "Calendar event in the next days",
+          priority: "high",
+          actionText: "Open Calendar",
+        });
+      }
+    } catch {}
+
+    try {
+      const files = Array.isArray(driveFiles) ? driveFiles.slice(0, 5) : [];
+      for (const f of files) {
+        suggestions.push({
+          id: `drv-${f?.id ?? Math.random()}`,
+          title: `Review file: ${String(f?.name || "Untitled")}`,
+          description: `${String(f?.mimeType || "")} • ${String(f?.modifiedTime || f?.createdTime || "")}`,
+          priority: "low",
+          actionText: "Open Drive",
+        });
+      }
+    } catch {}
 
     return NextResponse.json({
       success: true,
       data: {
         gmailMessages,
         calendarEvents,
-        tasks,
+        driveFiles,
+        suggestions,
       },
     });
   } catch (error) {
@@ -48,7 +97,8 @@ export async function GET(request: NextRequest) {
         data: {
           gmailMessages: [],
           calendarEvents: [],
-          tasks: [],
+          driveFiles: [],
+          suggestions: [],
         },
       },
       { status: 500 }

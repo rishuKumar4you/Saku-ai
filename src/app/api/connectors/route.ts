@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
-  const backend = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  const backend = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
 
   try {
-    const resp = await fetch(`${backend.replace(/\/$/, "")}/connectors`);
+    const resp = await fetch(`${backend.replace(/\/$/, "")}/connectors`, { cache: "no-store" });
     const json = await resp.json();
     return NextResponse.json(json, { status: resp.status });
   } catch (error) {

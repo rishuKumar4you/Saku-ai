@@ -15,6 +15,15 @@ const Page = async () => {
   await requireAuth();
   const conversations = await fetchConversations();
 
+  const getDisplayTitle = (conv: any) => {
+    if (conv.title && conv.title.trim()) {
+      return conv.title;
+    }
+    // If no title, show "New Chat" with date
+    const date = new Date(conv.createdAt || conv.updatedAt);
+    return `New Chat - ${date.toLocaleDateString()}`;
+  };
+
   return (
     <div className="flex flex-col h-full p-4 gap-4">
       <h1 className="text-lg font-semibold">Chat History</h1>
@@ -23,9 +32,12 @@ const Page = async () => {
           <p className="text-sm text-muted-foreground">No conversations yet.</p>
         ) : (
           conversations.map((c: any) => (
-            <a key={c.id} href={`/chat?convId=${c.id}`} className="block p-3 border rounded hover:bg-muted/50">
-              <div className="text-sm font-medium">{c.title || c.id}</div>
-              <div className="text-xs text-muted-foreground">{c.updatedAt || c.createdAt || ""}</div>
+            <a key={c.id} href={`/chat?convId=${c.id}`} className="block p-3 border rounded hover:bg-muted/50 transition-colors">
+              <div className="text-sm font-medium">{getDisplayTitle(c)}</div>
+              <div className="text-xs text-muted-foreground">
+                {c.updatedAt ? new Date(c.updatedAt).toLocaleString() : 
+                 c.createdAt ? new Date(c.createdAt).toLocaleString() : ""}
+              </div>
             </a>
           ))
         )}

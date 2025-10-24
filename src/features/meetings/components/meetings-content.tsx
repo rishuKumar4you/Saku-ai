@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -181,7 +182,7 @@ export const MeetingsContent = ({ activeTab, searchQuery }: MeetingsContentProps
                     </TableHeader>
                     <TableBody>
                         {filteredMeetings.map((meeting) => (
-                            <TableRow key={meeting.id}>
+                            <TableRow key={meeting.id} className="cursor-pointer" onClick={() => { window.location.href = `/meetings/${meeting.id}`; }}>
                                 <TableCell>
                                     <Checkbox
                                         checked={selectedMeetings.includes(meeting.id)}
@@ -191,7 +192,11 @@ export const MeetingsContent = ({ activeTab, searchQuery }: MeetingsContentProps
                                     />
                                 </TableCell>
                                 <TableCell className="font-medium">{meeting.provider || '-'}</TableCell>
-                                <TableCell className="font-medium">{meeting.title || meeting.id}</TableCell>
+                                <TableCell className="font-medium">
+                                    <Link href={`/meetings/${meeting.id}`} onClick={(e)=>e.stopPropagation()} className="hover:underline">
+                                        {meeting.title || meeting.id}
+                                    </Link>
+                                </TableCell>
                                 <TableCell>{meeting.date || '-'}</TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-2 text-xs">
