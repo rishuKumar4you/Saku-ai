@@ -58,6 +58,18 @@ export function RegisterForm(){
     });
     const onSubmit = async (values: RegisterFormValues) => {
         try {
+            // Debug information
+            const debugInfo = {
+                NODE_ENV: process.env.NODE_ENV,
+                APP_URL: process.env.APP_URL,
+                BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+                NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
+                currentURL: typeof window !== 'undefined' ? window.location.origin : 'server',
+            };
+            
+            console.log('🔍 Debug Info:', debugInfo);
+            toast.info(`Debug: NODE_ENV=${debugInfo.NODE_ENV}, URL=${debugInfo.currentURL}`);
+            
             await authClient.signUp.email(
                 {
                     name: values.email,
@@ -71,14 +83,15 @@ export function RegisterForm(){
                         router.push("/");
                     },
                     onError: (ctx) => {
-                        toast.error(ctx.error.message);
+                        console.error('❌ Auth Error:', ctx.error);
+                        toast.error(`Auth Error: ${ctx.error.message}`);
                     },
                 }
             )
         } catch (err: any) {
             // Network or unexpected error (e.g., Failed to fetch)
-            console.error('Sign up failed:', err);
-            toast.error(err?.message ?? 'Sign up failed. Check your network or server.');
+            console.error('❌ Sign up failed:', err);
+            toast.error(`Network Error: ${err?.message ?? 'Sign up failed. Check your network or server.'}`);
         }
     };
 
