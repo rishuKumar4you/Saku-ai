@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const backend = process.env.NEXT_PUBLIC_BACKEND_URL;
   if (!backend)
     return NextResponse.json(
@@ -25,7 +26,7 @@ export async function POST(
     uploadUrlForm.set("contentType", file.type);
 
     const uploadUrlResp = await fetch(
-      `${backend.replace(/\/$/, "")}/meetings/${params.id}/upload-url`,
+      `${backend.replace(/\/$/, "")}/meetings/${id}/upload-url`,
       {
         method: "POST",
         body: uploadUrlForm,
@@ -56,7 +57,7 @@ export async function POST(
     recordingForm.set("objectUri", objectUri);
 
     const recordingResp = await fetch(
-      `${backend.replace(/\/$/, "")}/meetings/${params.id}/recording`,
+      `${backend.replace(/\/$/, "")}/meetings/${id}/recording`,
       {
         method: "POST",
         body: recordingForm,

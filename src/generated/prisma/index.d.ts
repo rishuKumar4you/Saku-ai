@@ -38,6 +38,11 @@ export type Verification = $Result.DefaultSelection<Prisma.$VerificationPayload>
  * 
  */
 export type Workflow = $Result.DefaultSelection<Prisma.$WorkflowPayload>
+/**
+ * Model WorkflowRun
+ * 
+ */
+export type WorkflowRun = $Result.DefaultSelection<Prisma.$WorkflowRunPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -206,6 +211,16 @@ export class PrismaClient<
     * ```
     */
   get workflow(): Prisma.WorkflowDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.workflowRun`: Exposes CRUD operations for the **WorkflowRun** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more WorkflowRuns
+    * const workflowRuns = await prisma.workflowRun.findMany()
+    * ```
+    */
+  get workflowRun(): Prisma.WorkflowRunDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -264,8 +279,8 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 6.17.1
-   * Query Engine version: 272a37d34178c2894197e17273bf937f25acdeac
+   * Prisma Client JS version: 6.18.0
+   * Query Engine version: 34b5a692b7bd79939a9a2c3ef97d816e749cda2f
    */
   export type PrismaVersion = {
     client: string
@@ -278,6 +293,7 @@ export namespace Prisma {
    */
 
 
+  export import Bytes = runtime.Bytes
   export import JsonObject = runtime.JsonObject
   export import JsonArray = runtime.JsonArray
   export import JsonValue = runtime.JsonValue
@@ -650,7 +666,8 @@ export namespace Prisma {
     Session: 'Session',
     Account: 'Account',
     Verification: 'Verification',
-    Workflow: 'Workflow'
+    Workflow: 'Workflow',
+    WorkflowRun: 'WorkflowRun'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -669,7 +686,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "session" | "account" | "verification" | "workflow"
+      modelProps: "user" | "session" | "account" | "verification" | "workflow" | "workflowRun"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1043,6 +1060,80 @@ export namespace Prisma {
           }
         }
       }
+      WorkflowRun: {
+        payload: Prisma.$WorkflowRunPayload<ExtArgs>
+        fields: Prisma.WorkflowRunFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.WorkflowRunFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowRunPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.WorkflowRunFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowRunPayload>
+          }
+          findFirst: {
+            args: Prisma.WorkflowRunFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowRunPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.WorkflowRunFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowRunPayload>
+          }
+          findMany: {
+            args: Prisma.WorkflowRunFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowRunPayload>[]
+          }
+          create: {
+            args: Prisma.WorkflowRunCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowRunPayload>
+          }
+          createMany: {
+            args: Prisma.WorkflowRunCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.WorkflowRunCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowRunPayload>[]
+          }
+          delete: {
+            args: Prisma.WorkflowRunDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowRunPayload>
+          }
+          update: {
+            args: Prisma.WorkflowRunUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowRunPayload>
+          }
+          deleteMany: {
+            args: Prisma.WorkflowRunDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.WorkflowRunUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.WorkflowRunUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowRunPayload>[]
+          }
+          upsert: {
+            args: Prisma.WorkflowRunUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowRunPayload>
+          }
+          aggregate: {
+            args: Prisma.WorkflowRunAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateWorkflowRun>
+          }
+          groupBy: {
+            args: Prisma.WorkflowRunGroupByArgs<ExtArgs>
+            result: $Utils.Optional<WorkflowRunGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.WorkflowRunCountArgs<ExtArgs>
+            result: $Utils.Optional<WorkflowRunCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1144,6 +1235,7 @@ export namespace Prisma {
     account?: AccountOmit
     verification?: VerificationOmit
     workflow?: WorkflowOmit
+    workflowRun?: WorkflowRunOmit
   }
 
   /* Types for Logging */
@@ -1265,6 +1357,37 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountWorkflowsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: WorkflowWhereInput
+  }
+
+
+  /**
+   * Count Type WorkflowCountOutputType
+   */
+
+  export type WorkflowCountOutputType = {
+    runs: number
+  }
+
+  export type WorkflowCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    runs?: boolean | WorkflowCountOutputTypeCountRunsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * WorkflowCountOutputType without action
+   */
+  export type WorkflowCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowCountOutputType
+     */
+    select?: WorkflowCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * WorkflowCountOutputType without action
+   */
+  export type WorkflowCountOutputTypeCountRunsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WorkflowRunWhereInput
   }
 
 
@@ -5704,6 +5827,11 @@ export namespace Prisma {
   export type WorkflowMinAggregateOutputType = {
     id: string | null
     name: string | null
+    description: string | null
+    template: string | null
+    n8nWorkflowId: string | null
+    status: string | null
+    lastRunAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
     userId: string | null
@@ -5712,6 +5840,11 @@ export namespace Prisma {
   export type WorkflowMaxAggregateOutputType = {
     id: string | null
     name: string | null
+    description: string | null
+    template: string | null
+    n8nWorkflowId: string | null
+    status: string | null
+    lastRunAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
     userId: string | null
@@ -5720,6 +5853,11 @@ export namespace Prisma {
   export type WorkflowCountAggregateOutputType = {
     id: number
     name: number
+    description: number
+    template: number
+    n8nWorkflowId: number
+    status: number
+    lastRunAt: number
     createdAt: number
     updatedAt: number
     userId: number
@@ -5730,6 +5868,11 @@ export namespace Prisma {
   export type WorkflowMinAggregateInputType = {
     id?: true
     name?: true
+    description?: true
+    template?: true
+    n8nWorkflowId?: true
+    status?: true
+    lastRunAt?: true
     createdAt?: true
     updatedAt?: true
     userId?: true
@@ -5738,6 +5881,11 @@ export namespace Prisma {
   export type WorkflowMaxAggregateInputType = {
     id?: true
     name?: true
+    description?: true
+    template?: true
+    n8nWorkflowId?: true
+    status?: true
+    lastRunAt?: true
     createdAt?: true
     updatedAt?: true
     userId?: true
@@ -5746,6 +5894,11 @@ export namespace Prisma {
   export type WorkflowCountAggregateInputType = {
     id?: true
     name?: true
+    description?: true
+    template?: true
+    n8nWorkflowId?: true
+    status?: true
+    lastRunAt?: true
     createdAt?: true
     updatedAt?: true
     userId?: true
@@ -5827,6 +5980,11 @@ export namespace Prisma {
   export type WorkflowGroupByOutputType = {
     id: string
     name: string
+    description: string | null
+    template: string | null
+    n8nWorkflowId: string | null
+    status: string
+    lastRunAt: Date | null
     createdAt: Date
     updatedAt: Date
     userId: string
@@ -5852,15 +6010,27 @@ export namespace Prisma {
   export type WorkflowSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    description?: boolean
+    template?: boolean
+    n8nWorkflowId?: boolean
+    status?: boolean
+    lastRunAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     userId?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
+    runs?: boolean | Workflow$runsArgs<ExtArgs>
+    _count?: boolean | WorkflowCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["workflow"]>
 
   export type WorkflowSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    description?: boolean
+    template?: boolean
+    n8nWorkflowId?: boolean
+    status?: boolean
+    lastRunAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     userId?: boolean
@@ -5870,6 +6040,11 @@ export namespace Prisma {
   export type WorkflowSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    description?: boolean
+    template?: boolean
+    n8nWorkflowId?: boolean
+    status?: boolean
+    lastRunAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     userId?: boolean
@@ -5879,14 +6054,21 @@ export namespace Prisma {
   export type WorkflowSelectScalar = {
     id?: boolean
     name?: boolean
+    description?: boolean
+    template?: boolean
+    n8nWorkflowId?: boolean
+    status?: boolean
+    lastRunAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     userId?: boolean
   }
 
-  export type WorkflowOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["workflow"]>
+  export type WorkflowOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "template" | "n8nWorkflowId" | "status" | "lastRunAt" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["workflow"]>
   export type WorkflowInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
+    runs?: boolean | Workflow$runsArgs<ExtArgs>
+    _count?: boolean | WorkflowCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type WorkflowIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -5899,10 +6081,16 @@ export namespace Prisma {
     name: "Workflow"
     objects: {
       user: Prisma.$UserPayload<ExtArgs>
+      runs: Prisma.$WorkflowRunPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       name: string
+      description: string | null
+      template: string | null
+      n8nWorkflowId: string | null
+      status: string
+      lastRunAt: Date | null
       createdAt: Date
       updatedAt: Date
       userId: string
@@ -6301,6 +6489,7 @@ export namespace Prisma {
   export interface Prisma__WorkflowClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    runs<T extends Workflow$runsArgs<ExtArgs> = {}>(args?: Subset<T, Workflow$runsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WorkflowRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6332,6 +6521,11 @@ export namespace Prisma {
   interface WorkflowFieldRefs {
     readonly id: FieldRef<"Workflow", 'String'>
     readonly name: FieldRef<"Workflow", 'String'>
+    readonly description: FieldRef<"Workflow", 'String'>
+    readonly template: FieldRef<"Workflow", 'String'>
+    readonly n8nWorkflowId: FieldRef<"Workflow", 'String'>
+    readonly status: FieldRef<"Workflow", 'String'>
+    readonly lastRunAt: FieldRef<"Workflow", 'DateTime'>
     readonly createdAt: FieldRef<"Workflow", 'DateTime'>
     readonly updatedAt: FieldRef<"Workflow", 'DateTime'>
     readonly userId: FieldRef<"Workflow", 'String'>
@@ -6731,6 +6925,30 @@ export namespace Prisma {
   }
 
   /**
+   * Workflow.runs
+   */
+  export type Workflow$runsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowRun
+     */
+    select?: WorkflowRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WorkflowRun
+     */
+    omit?: WorkflowRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowRunInclude<ExtArgs> | null
+    where?: WorkflowRunWhereInput
+    orderBy?: WorkflowRunOrderByWithRelationInput | WorkflowRunOrderByWithRelationInput[]
+    cursor?: WorkflowRunWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WorkflowRunScalarFieldEnum | WorkflowRunScalarFieldEnum[]
+  }
+
+  /**
    * Workflow without action
    */
   export type WorkflowDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -6746,6 +6964,1099 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: WorkflowInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model WorkflowRun
+   */
+
+  export type AggregateWorkflowRun = {
+    _count: WorkflowRunCountAggregateOutputType | null
+    _min: WorkflowRunMinAggregateOutputType | null
+    _max: WorkflowRunMaxAggregateOutputType | null
+  }
+
+  export type WorkflowRunMinAggregateOutputType = {
+    id: string | null
+    workflowId: string | null
+    status: string | null
+    error: string | null
+    startedAt: Date | null
+    completedAt: Date | null
+    userId: string | null
+  }
+
+  export type WorkflowRunMaxAggregateOutputType = {
+    id: string | null
+    workflowId: string | null
+    status: string | null
+    error: string | null
+    startedAt: Date | null
+    completedAt: Date | null
+    userId: string | null
+  }
+
+  export type WorkflowRunCountAggregateOutputType = {
+    id: number
+    workflowId: number
+    status: number
+    output: number
+    error: number
+    startedAt: number
+    completedAt: number
+    userId: number
+    _all: number
+  }
+
+
+  export type WorkflowRunMinAggregateInputType = {
+    id?: true
+    workflowId?: true
+    status?: true
+    error?: true
+    startedAt?: true
+    completedAt?: true
+    userId?: true
+  }
+
+  export type WorkflowRunMaxAggregateInputType = {
+    id?: true
+    workflowId?: true
+    status?: true
+    error?: true
+    startedAt?: true
+    completedAt?: true
+    userId?: true
+  }
+
+  export type WorkflowRunCountAggregateInputType = {
+    id?: true
+    workflowId?: true
+    status?: true
+    output?: true
+    error?: true
+    startedAt?: true
+    completedAt?: true
+    userId?: true
+    _all?: true
+  }
+
+  export type WorkflowRunAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WorkflowRun to aggregate.
+     */
+    where?: WorkflowRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WorkflowRuns to fetch.
+     */
+    orderBy?: WorkflowRunOrderByWithRelationInput | WorkflowRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: WorkflowRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WorkflowRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WorkflowRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned WorkflowRuns
+    **/
+    _count?: true | WorkflowRunCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: WorkflowRunMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: WorkflowRunMaxAggregateInputType
+  }
+
+  export type GetWorkflowRunAggregateType<T extends WorkflowRunAggregateArgs> = {
+        [P in keyof T & keyof AggregateWorkflowRun]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateWorkflowRun[P]>
+      : GetScalarType<T[P], AggregateWorkflowRun[P]>
+  }
+
+
+
+
+  export type WorkflowRunGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WorkflowRunWhereInput
+    orderBy?: WorkflowRunOrderByWithAggregationInput | WorkflowRunOrderByWithAggregationInput[]
+    by: WorkflowRunScalarFieldEnum[] | WorkflowRunScalarFieldEnum
+    having?: WorkflowRunScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: WorkflowRunCountAggregateInputType | true
+    _min?: WorkflowRunMinAggregateInputType
+    _max?: WorkflowRunMaxAggregateInputType
+  }
+
+  export type WorkflowRunGroupByOutputType = {
+    id: string
+    workflowId: string
+    status: string
+    output: JsonValue | null
+    error: string | null
+    startedAt: Date
+    completedAt: Date | null
+    userId: string
+    _count: WorkflowRunCountAggregateOutputType | null
+    _min: WorkflowRunMinAggregateOutputType | null
+    _max: WorkflowRunMaxAggregateOutputType | null
+  }
+
+  type GetWorkflowRunGroupByPayload<T extends WorkflowRunGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<WorkflowRunGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof WorkflowRunGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], WorkflowRunGroupByOutputType[P]>
+            : GetScalarType<T[P], WorkflowRunGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type WorkflowRunSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    workflowId?: boolean
+    status?: boolean
+    output?: boolean
+    error?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    userId?: boolean
+    workflow?: boolean | WorkflowDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["workflowRun"]>
+
+  export type WorkflowRunSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    workflowId?: boolean
+    status?: boolean
+    output?: boolean
+    error?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    userId?: boolean
+    workflow?: boolean | WorkflowDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["workflowRun"]>
+
+  export type WorkflowRunSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    workflowId?: boolean
+    status?: boolean
+    output?: boolean
+    error?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    userId?: boolean
+    workflow?: boolean | WorkflowDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["workflowRun"]>
+
+  export type WorkflowRunSelectScalar = {
+    id?: boolean
+    workflowId?: boolean
+    status?: boolean
+    output?: boolean
+    error?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    userId?: boolean
+  }
+
+  export type WorkflowRunOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "workflowId" | "status" | "output" | "error" | "startedAt" | "completedAt" | "userId", ExtArgs["result"]["workflowRun"]>
+  export type WorkflowRunInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    workflow?: boolean | WorkflowDefaultArgs<ExtArgs>
+  }
+  export type WorkflowRunIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    workflow?: boolean | WorkflowDefaultArgs<ExtArgs>
+  }
+  export type WorkflowRunIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    workflow?: boolean | WorkflowDefaultArgs<ExtArgs>
+  }
+
+  export type $WorkflowRunPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "WorkflowRun"
+    objects: {
+      workflow: Prisma.$WorkflowPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      workflowId: string
+      status: string
+      output: Prisma.JsonValue | null
+      error: string | null
+      startedAt: Date
+      completedAt: Date | null
+      userId: string
+    }, ExtArgs["result"]["workflowRun"]>
+    composites: {}
+  }
+
+  type WorkflowRunGetPayload<S extends boolean | null | undefined | WorkflowRunDefaultArgs> = $Result.GetResult<Prisma.$WorkflowRunPayload, S>
+
+  type WorkflowRunCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<WorkflowRunFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: WorkflowRunCountAggregateInputType | true
+    }
+
+  export interface WorkflowRunDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['WorkflowRun'], meta: { name: 'WorkflowRun' } }
+    /**
+     * Find zero or one WorkflowRun that matches the filter.
+     * @param {WorkflowRunFindUniqueArgs} args - Arguments to find a WorkflowRun
+     * @example
+     * // Get one WorkflowRun
+     * const workflowRun = await prisma.workflowRun.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends WorkflowRunFindUniqueArgs>(args: SelectSubset<T, WorkflowRunFindUniqueArgs<ExtArgs>>): Prisma__WorkflowRunClient<$Result.GetResult<Prisma.$WorkflowRunPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one WorkflowRun that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {WorkflowRunFindUniqueOrThrowArgs} args - Arguments to find a WorkflowRun
+     * @example
+     * // Get one WorkflowRun
+     * const workflowRun = await prisma.workflowRun.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends WorkflowRunFindUniqueOrThrowArgs>(args: SelectSubset<T, WorkflowRunFindUniqueOrThrowArgs<ExtArgs>>): Prisma__WorkflowRunClient<$Result.GetResult<Prisma.$WorkflowRunPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WorkflowRun that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowRunFindFirstArgs} args - Arguments to find a WorkflowRun
+     * @example
+     * // Get one WorkflowRun
+     * const workflowRun = await prisma.workflowRun.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends WorkflowRunFindFirstArgs>(args?: SelectSubset<T, WorkflowRunFindFirstArgs<ExtArgs>>): Prisma__WorkflowRunClient<$Result.GetResult<Prisma.$WorkflowRunPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first WorkflowRun that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowRunFindFirstOrThrowArgs} args - Arguments to find a WorkflowRun
+     * @example
+     * // Get one WorkflowRun
+     * const workflowRun = await prisma.workflowRun.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends WorkflowRunFindFirstOrThrowArgs>(args?: SelectSubset<T, WorkflowRunFindFirstOrThrowArgs<ExtArgs>>): Prisma__WorkflowRunClient<$Result.GetResult<Prisma.$WorkflowRunPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more WorkflowRuns that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowRunFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all WorkflowRuns
+     * const workflowRuns = await prisma.workflowRun.findMany()
+     * 
+     * // Get first 10 WorkflowRuns
+     * const workflowRuns = await prisma.workflowRun.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const workflowRunWithIdOnly = await prisma.workflowRun.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends WorkflowRunFindManyArgs>(args?: SelectSubset<T, WorkflowRunFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WorkflowRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a WorkflowRun.
+     * @param {WorkflowRunCreateArgs} args - Arguments to create a WorkflowRun.
+     * @example
+     * // Create one WorkflowRun
+     * const WorkflowRun = await prisma.workflowRun.create({
+     *   data: {
+     *     // ... data to create a WorkflowRun
+     *   }
+     * })
+     * 
+     */
+    create<T extends WorkflowRunCreateArgs>(args: SelectSubset<T, WorkflowRunCreateArgs<ExtArgs>>): Prisma__WorkflowRunClient<$Result.GetResult<Prisma.$WorkflowRunPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many WorkflowRuns.
+     * @param {WorkflowRunCreateManyArgs} args - Arguments to create many WorkflowRuns.
+     * @example
+     * // Create many WorkflowRuns
+     * const workflowRun = await prisma.workflowRun.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends WorkflowRunCreateManyArgs>(args?: SelectSubset<T, WorkflowRunCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many WorkflowRuns and returns the data saved in the database.
+     * @param {WorkflowRunCreateManyAndReturnArgs} args - Arguments to create many WorkflowRuns.
+     * @example
+     * // Create many WorkflowRuns
+     * const workflowRun = await prisma.workflowRun.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many WorkflowRuns and only return the `id`
+     * const workflowRunWithIdOnly = await prisma.workflowRun.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends WorkflowRunCreateManyAndReturnArgs>(args?: SelectSubset<T, WorkflowRunCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WorkflowRunPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a WorkflowRun.
+     * @param {WorkflowRunDeleteArgs} args - Arguments to delete one WorkflowRun.
+     * @example
+     * // Delete one WorkflowRun
+     * const WorkflowRun = await prisma.workflowRun.delete({
+     *   where: {
+     *     // ... filter to delete one WorkflowRun
+     *   }
+     * })
+     * 
+     */
+    delete<T extends WorkflowRunDeleteArgs>(args: SelectSubset<T, WorkflowRunDeleteArgs<ExtArgs>>): Prisma__WorkflowRunClient<$Result.GetResult<Prisma.$WorkflowRunPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one WorkflowRun.
+     * @param {WorkflowRunUpdateArgs} args - Arguments to update one WorkflowRun.
+     * @example
+     * // Update one WorkflowRun
+     * const workflowRun = await prisma.workflowRun.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends WorkflowRunUpdateArgs>(args: SelectSubset<T, WorkflowRunUpdateArgs<ExtArgs>>): Prisma__WorkflowRunClient<$Result.GetResult<Prisma.$WorkflowRunPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more WorkflowRuns.
+     * @param {WorkflowRunDeleteManyArgs} args - Arguments to filter WorkflowRuns to delete.
+     * @example
+     * // Delete a few WorkflowRuns
+     * const { count } = await prisma.workflowRun.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends WorkflowRunDeleteManyArgs>(args?: SelectSubset<T, WorkflowRunDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WorkflowRuns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowRunUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many WorkflowRuns
+     * const workflowRun = await prisma.workflowRun.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends WorkflowRunUpdateManyArgs>(args: SelectSubset<T, WorkflowRunUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WorkflowRuns and returns the data updated in the database.
+     * @param {WorkflowRunUpdateManyAndReturnArgs} args - Arguments to update many WorkflowRuns.
+     * @example
+     * // Update many WorkflowRuns
+     * const workflowRun = await prisma.workflowRun.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more WorkflowRuns and only return the `id`
+     * const workflowRunWithIdOnly = await prisma.workflowRun.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends WorkflowRunUpdateManyAndReturnArgs>(args: SelectSubset<T, WorkflowRunUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WorkflowRunPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one WorkflowRun.
+     * @param {WorkflowRunUpsertArgs} args - Arguments to update or create a WorkflowRun.
+     * @example
+     * // Update or create a WorkflowRun
+     * const workflowRun = await prisma.workflowRun.upsert({
+     *   create: {
+     *     // ... data to create a WorkflowRun
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the WorkflowRun we want to update
+     *   }
+     * })
+     */
+    upsert<T extends WorkflowRunUpsertArgs>(args: SelectSubset<T, WorkflowRunUpsertArgs<ExtArgs>>): Prisma__WorkflowRunClient<$Result.GetResult<Prisma.$WorkflowRunPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of WorkflowRuns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowRunCountArgs} args - Arguments to filter WorkflowRuns to count.
+     * @example
+     * // Count the number of WorkflowRuns
+     * const count = await prisma.workflowRun.count({
+     *   where: {
+     *     // ... the filter for the WorkflowRuns we want to count
+     *   }
+     * })
+    **/
+    count<T extends WorkflowRunCountArgs>(
+      args?: Subset<T, WorkflowRunCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], WorkflowRunCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a WorkflowRun.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowRunAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends WorkflowRunAggregateArgs>(args: Subset<T, WorkflowRunAggregateArgs>): Prisma.PrismaPromise<GetWorkflowRunAggregateType<T>>
+
+    /**
+     * Group by WorkflowRun.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowRunGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends WorkflowRunGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: WorkflowRunGroupByArgs['orderBy'] }
+        : { orderBy?: WorkflowRunGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, WorkflowRunGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetWorkflowRunGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the WorkflowRun model
+   */
+  readonly fields: WorkflowRunFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for WorkflowRun.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__WorkflowRunClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    workflow<T extends WorkflowDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WorkflowDefaultArgs<ExtArgs>>): Prisma__WorkflowClient<$Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the WorkflowRun model
+   */
+  interface WorkflowRunFieldRefs {
+    readonly id: FieldRef<"WorkflowRun", 'String'>
+    readonly workflowId: FieldRef<"WorkflowRun", 'String'>
+    readonly status: FieldRef<"WorkflowRun", 'String'>
+    readonly output: FieldRef<"WorkflowRun", 'Json'>
+    readonly error: FieldRef<"WorkflowRun", 'String'>
+    readonly startedAt: FieldRef<"WorkflowRun", 'DateTime'>
+    readonly completedAt: FieldRef<"WorkflowRun", 'DateTime'>
+    readonly userId: FieldRef<"WorkflowRun", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * WorkflowRun findUnique
+   */
+  export type WorkflowRunFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowRun
+     */
+    select?: WorkflowRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WorkflowRun
+     */
+    omit?: WorkflowRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowRunInclude<ExtArgs> | null
+    /**
+     * Filter, which WorkflowRun to fetch.
+     */
+    where: WorkflowRunWhereUniqueInput
+  }
+
+  /**
+   * WorkflowRun findUniqueOrThrow
+   */
+  export type WorkflowRunFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowRun
+     */
+    select?: WorkflowRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WorkflowRun
+     */
+    omit?: WorkflowRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowRunInclude<ExtArgs> | null
+    /**
+     * Filter, which WorkflowRun to fetch.
+     */
+    where: WorkflowRunWhereUniqueInput
+  }
+
+  /**
+   * WorkflowRun findFirst
+   */
+  export type WorkflowRunFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowRun
+     */
+    select?: WorkflowRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WorkflowRun
+     */
+    omit?: WorkflowRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowRunInclude<ExtArgs> | null
+    /**
+     * Filter, which WorkflowRun to fetch.
+     */
+    where?: WorkflowRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WorkflowRuns to fetch.
+     */
+    orderBy?: WorkflowRunOrderByWithRelationInput | WorkflowRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WorkflowRuns.
+     */
+    cursor?: WorkflowRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WorkflowRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WorkflowRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WorkflowRuns.
+     */
+    distinct?: WorkflowRunScalarFieldEnum | WorkflowRunScalarFieldEnum[]
+  }
+
+  /**
+   * WorkflowRun findFirstOrThrow
+   */
+  export type WorkflowRunFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowRun
+     */
+    select?: WorkflowRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WorkflowRun
+     */
+    omit?: WorkflowRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowRunInclude<ExtArgs> | null
+    /**
+     * Filter, which WorkflowRun to fetch.
+     */
+    where?: WorkflowRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WorkflowRuns to fetch.
+     */
+    orderBy?: WorkflowRunOrderByWithRelationInput | WorkflowRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WorkflowRuns.
+     */
+    cursor?: WorkflowRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WorkflowRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WorkflowRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WorkflowRuns.
+     */
+    distinct?: WorkflowRunScalarFieldEnum | WorkflowRunScalarFieldEnum[]
+  }
+
+  /**
+   * WorkflowRun findMany
+   */
+  export type WorkflowRunFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowRun
+     */
+    select?: WorkflowRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WorkflowRun
+     */
+    omit?: WorkflowRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowRunInclude<ExtArgs> | null
+    /**
+     * Filter, which WorkflowRuns to fetch.
+     */
+    where?: WorkflowRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WorkflowRuns to fetch.
+     */
+    orderBy?: WorkflowRunOrderByWithRelationInput | WorkflowRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing WorkflowRuns.
+     */
+    cursor?: WorkflowRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WorkflowRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WorkflowRuns.
+     */
+    skip?: number
+    distinct?: WorkflowRunScalarFieldEnum | WorkflowRunScalarFieldEnum[]
+  }
+
+  /**
+   * WorkflowRun create
+   */
+  export type WorkflowRunCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowRun
+     */
+    select?: WorkflowRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WorkflowRun
+     */
+    omit?: WorkflowRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowRunInclude<ExtArgs> | null
+    /**
+     * The data needed to create a WorkflowRun.
+     */
+    data: XOR<WorkflowRunCreateInput, WorkflowRunUncheckedCreateInput>
+  }
+
+  /**
+   * WorkflowRun createMany
+   */
+  export type WorkflowRunCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many WorkflowRuns.
+     */
+    data: WorkflowRunCreateManyInput | WorkflowRunCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * WorkflowRun createManyAndReturn
+   */
+  export type WorkflowRunCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowRun
+     */
+    select?: WorkflowRunSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WorkflowRun
+     */
+    omit?: WorkflowRunOmit<ExtArgs> | null
+    /**
+     * The data used to create many WorkflowRuns.
+     */
+    data: WorkflowRunCreateManyInput | WorkflowRunCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowRunIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * WorkflowRun update
+   */
+  export type WorkflowRunUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowRun
+     */
+    select?: WorkflowRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WorkflowRun
+     */
+    omit?: WorkflowRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowRunInclude<ExtArgs> | null
+    /**
+     * The data needed to update a WorkflowRun.
+     */
+    data: XOR<WorkflowRunUpdateInput, WorkflowRunUncheckedUpdateInput>
+    /**
+     * Choose, which WorkflowRun to update.
+     */
+    where: WorkflowRunWhereUniqueInput
+  }
+
+  /**
+   * WorkflowRun updateMany
+   */
+  export type WorkflowRunUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update WorkflowRuns.
+     */
+    data: XOR<WorkflowRunUpdateManyMutationInput, WorkflowRunUncheckedUpdateManyInput>
+    /**
+     * Filter which WorkflowRuns to update
+     */
+    where?: WorkflowRunWhereInput
+    /**
+     * Limit how many WorkflowRuns to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * WorkflowRun updateManyAndReturn
+   */
+  export type WorkflowRunUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowRun
+     */
+    select?: WorkflowRunSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the WorkflowRun
+     */
+    omit?: WorkflowRunOmit<ExtArgs> | null
+    /**
+     * The data used to update WorkflowRuns.
+     */
+    data: XOR<WorkflowRunUpdateManyMutationInput, WorkflowRunUncheckedUpdateManyInput>
+    /**
+     * Filter which WorkflowRuns to update
+     */
+    where?: WorkflowRunWhereInput
+    /**
+     * Limit how many WorkflowRuns to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowRunIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * WorkflowRun upsert
+   */
+  export type WorkflowRunUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowRun
+     */
+    select?: WorkflowRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WorkflowRun
+     */
+    omit?: WorkflowRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowRunInclude<ExtArgs> | null
+    /**
+     * The filter to search for the WorkflowRun to update in case it exists.
+     */
+    where: WorkflowRunWhereUniqueInput
+    /**
+     * In case the WorkflowRun found by the `where` argument doesn't exist, create a new WorkflowRun with this data.
+     */
+    create: XOR<WorkflowRunCreateInput, WorkflowRunUncheckedCreateInput>
+    /**
+     * In case the WorkflowRun was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<WorkflowRunUpdateInput, WorkflowRunUncheckedUpdateInput>
+  }
+
+  /**
+   * WorkflowRun delete
+   */
+  export type WorkflowRunDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowRun
+     */
+    select?: WorkflowRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WorkflowRun
+     */
+    omit?: WorkflowRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowRunInclude<ExtArgs> | null
+    /**
+     * Filter which WorkflowRun to delete.
+     */
+    where: WorkflowRunWhereUniqueInput
+  }
+
+  /**
+   * WorkflowRun deleteMany
+   */
+  export type WorkflowRunDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WorkflowRuns to delete
+     */
+    where?: WorkflowRunWhereInput
+    /**
+     * Limit how many WorkflowRuns to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * WorkflowRun without action
+   */
+  export type WorkflowRunDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowRun
+     */
+    select?: WorkflowRunSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the WorkflowRun
+     */
+    omit?: WorkflowRunOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowRunInclude<ExtArgs> | null
   }
 
 
@@ -6824,6 +8135,11 @@ export namespace Prisma {
   export const WorkflowScalarFieldEnum: {
     id: 'id',
     name: 'name',
+    description: 'description',
+    template: 'template',
+    n8nWorkflowId: 'n8nWorkflowId',
+    status: 'status',
+    lastRunAt: 'lastRunAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     userId: 'userId'
@@ -6832,12 +8148,34 @@ export namespace Prisma {
   export type WorkflowScalarFieldEnum = (typeof WorkflowScalarFieldEnum)[keyof typeof WorkflowScalarFieldEnum]
 
 
+  export const WorkflowRunScalarFieldEnum: {
+    id: 'id',
+    workflowId: 'workflowId',
+    status: 'status',
+    output: 'output',
+    error: 'error',
+    startedAt: 'startedAt',
+    completedAt: 'completedAt',
+    userId: 'userId'
+  };
+
+  export type WorkflowRunScalarFieldEnum = (typeof WorkflowRunScalarFieldEnum)[keyof typeof WorkflowRunScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
   };
 
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+  export const NullableJsonNullValueInput: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull
+  };
+
+  export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
   export const QueryMode: {
@@ -6854,6 +8192,15 @@ export namespace Prisma {
   };
 
   export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
   /**
@@ -6893,6 +8240,20 @@ export namespace Prisma {
    * Reference to a field of type 'DateTime[]'
    */
   export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -7212,19 +8573,31 @@ export namespace Prisma {
     NOT?: WorkflowWhereInput | WorkflowWhereInput[]
     id?: StringFilter<"Workflow"> | string
     name?: StringFilter<"Workflow"> | string
+    description?: StringNullableFilter<"Workflow"> | string | null
+    template?: StringNullableFilter<"Workflow"> | string | null
+    n8nWorkflowId?: StringNullableFilter<"Workflow"> | string | null
+    status?: StringFilter<"Workflow"> | string
+    lastRunAt?: DateTimeNullableFilter<"Workflow"> | Date | string | null
     createdAt?: DateTimeFilter<"Workflow"> | Date | string
     updatedAt?: DateTimeFilter<"Workflow"> | Date | string
     userId?: StringFilter<"Workflow"> | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    runs?: WorkflowRunListRelationFilter
   }
 
   export type WorkflowOrderByWithRelationInput = {
     id?: SortOrder
     name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    template?: SortOrderInput | SortOrder
+    n8nWorkflowId?: SortOrderInput | SortOrder
+    status?: SortOrder
+    lastRunAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
     user?: UserOrderByWithRelationInput
+    runs?: WorkflowRunOrderByRelationAggregateInput
   }
 
   export type WorkflowWhereUniqueInput = Prisma.AtLeast<{
@@ -7233,15 +8606,26 @@ export namespace Prisma {
     OR?: WorkflowWhereInput[]
     NOT?: WorkflowWhereInput | WorkflowWhereInput[]
     name?: StringFilter<"Workflow"> | string
+    description?: StringNullableFilter<"Workflow"> | string | null
+    template?: StringNullableFilter<"Workflow"> | string | null
+    n8nWorkflowId?: StringNullableFilter<"Workflow"> | string | null
+    status?: StringFilter<"Workflow"> | string
+    lastRunAt?: DateTimeNullableFilter<"Workflow"> | Date | string | null
     createdAt?: DateTimeFilter<"Workflow"> | Date | string
     updatedAt?: DateTimeFilter<"Workflow"> | Date | string
     userId?: StringFilter<"Workflow"> | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    runs?: WorkflowRunListRelationFilter
   }, "id">
 
   export type WorkflowOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    template?: SortOrderInput | SortOrder
+    n8nWorkflowId?: SortOrderInput | SortOrder
+    status?: SortOrder
+    lastRunAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
@@ -7256,9 +8640,84 @@ export namespace Prisma {
     NOT?: WorkflowScalarWhereWithAggregatesInput | WorkflowScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Workflow"> | string
     name?: StringWithAggregatesFilter<"Workflow"> | string
+    description?: StringNullableWithAggregatesFilter<"Workflow"> | string | null
+    template?: StringNullableWithAggregatesFilter<"Workflow"> | string | null
+    n8nWorkflowId?: StringNullableWithAggregatesFilter<"Workflow"> | string | null
+    status?: StringWithAggregatesFilter<"Workflow"> | string
+    lastRunAt?: DateTimeNullableWithAggregatesFilter<"Workflow"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Workflow"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Workflow"> | Date | string
     userId?: StringWithAggregatesFilter<"Workflow"> | string
+  }
+
+  export type WorkflowRunWhereInput = {
+    AND?: WorkflowRunWhereInput | WorkflowRunWhereInput[]
+    OR?: WorkflowRunWhereInput[]
+    NOT?: WorkflowRunWhereInput | WorkflowRunWhereInput[]
+    id?: StringFilter<"WorkflowRun"> | string
+    workflowId?: StringFilter<"WorkflowRun"> | string
+    status?: StringFilter<"WorkflowRun"> | string
+    output?: JsonNullableFilter<"WorkflowRun">
+    error?: StringNullableFilter<"WorkflowRun"> | string | null
+    startedAt?: DateTimeFilter<"WorkflowRun"> | Date | string
+    completedAt?: DateTimeNullableFilter<"WorkflowRun"> | Date | string | null
+    userId?: StringFilter<"WorkflowRun"> | string
+    workflow?: XOR<WorkflowScalarRelationFilter, WorkflowWhereInput>
+  }
+
+  export type WorkflowRunOrderByWithRelationInput = {
+    id?: SortOrder
+    workflowId?: SortOrder
+    status?: SortOrder
+    output?: SortOrderInput | SortOrder
+    error?: SortOrderInput | SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    userId?: SortOrder
+    workflow?: WorkflowOrderByWithRelationInput
+  }
+
+  export type WorkflowRunWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: WorkflowRunWhereInput | WorkflowRunWhereInput[]
+    OR?: WorkflowRunWhereInput[]
+    NOT?: WorkflowRunWhereInput | WorkflowRunWhereInput[]
+    workflowId?: StringFilter<"WorkflowRun"> | string
+    status?: StringFilter<"WorkflowRun"> | string
+    output?: JsonNullableFilter<"WorkflowRun">
+    error?: StringNullableFilter<"WorkflowRun"> | string | null
+    startedAt?: DateTimeFilter<"WorkflowRun"> | Date | string
+    completedAt?: DateTimeNullableFilter<"WorkflowRun"> | Date | string | null
+    userId?: StringFilter<"WorkflowRun"> | string
+    workflow?: XOR<WorkflowScalarRelationFilter, WorkflowWhereInput>
+  }, "id">
+
+  export type WorkflowRunOrderByWithAggregationInput = {
+    id?: SortOrder
+    workflowId?: SortOrder
+    status?: SortOrder
+    output?: SortOrderInput | SortOrder
+    error?: SortOrderInput | SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    userId?: SortOrder
+    _count?: WorkflowRunCountOrderByAggregateInput
+    _max?: WorkflowRunMaxOrderByAggregateInput
+    _min?: WorkflowRunMinOrderByAggregateInput
+  }
+
+  export type WorkflowRunScalarWhereWithAggregatesInput = {
+    AND?: WorkflowRunScalarWhereWithAggregatesInput | WorkflowRunScalarWhereWithAggregatesInput[]
+    OR?: WorkflowRunScalarWhereWithAggregatesInput[]
+    NOT?: WorkflowRunScalarWhereWithAggregatesInput | WorkflowRunScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"WorkflowRun"> | string
+    workflowId?: StringWithAggregatesFilter<"WorkflowRun"> | string
+    status?: StringWithAggregatesFilter<"WorkflowRun"> | string
+    output?: JsonNullableWithAggregatesFilter<"WorkflowRun">
+    error?: StringNullableWithAggregatesFilter<"WorkflowRun"> | string | null
+    startedAt?: DateTimeWithAggregatesFilter<"WorkflowRun"> | Date | string
+    completedAt?: DateTimeNullableWithAggregatesFilter<"WorkflowRun"> | Date | string | null
+    userId?: StringWithAggregatesFilter<"WorkflowRun"> | string
   }
 
   export type UserCreateInput = {
@@ -7596,38 +9055,67 @@ export namespace Prisma {
   export type WorkflowCreateInput = {
     id?: string
     name: string
+    description?: string | null
+    template?: string | null
+    n8nWorkflowId?: string | null
+    status?: string
+    lastRunAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutWorkflowsInput
+    runs?: WorkflowRunCreateNestedManyWithoutWorkflowInput
   }
 
   export type WorkflowUncheckedCreateInput = {
     id?: string
     name: string
+    description?: string | null
+    template?: string | null
+    n8nWorkflowId?: string | null
+    status?: string
+    lastRunAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     userId: string
+    runs?: WorkflowRunUncheckedCreateNestedManyWithoutWorkflowInput
   }
 
   export type WorkflowUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    template?: NullableStringFieldUpdateOperationsInput | string | null
+    n8nWorkflowId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutWorkflowsNestedInput
+    runs?: WorkflowRunUpdateManyWithoutWorkflowNestedInput
   }
 
   export type WorkflowUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    template?: NullableStringFieldUpdateOperationsInput | string | null
+    n8nWorkflowId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     userId?: StringFieldUpdateOperationsInput | string
+    runs?: WorkflowRunUncheckedUpdateManyWithoutWorkflowNestedInput
   }
 
   export type WorkflowCreateManyInput = {
     id?: string
     name: string
+    description?: string | null
+    template?: string | null
+    n8nWorkflowId?: string | null
+    status?: string
+    lastRunAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     userId: string
@@ -7636,6 +9124,11 @@ export namespace Prisma {
   export type WorkflowUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    template?: NullableStringFieldUpdateOperationsInput | string | null
+    n8nWorkflowId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -7643,8 +9136,89 @@ export namespace Prisma {
   export type WorkflowUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    template?: NullableStringFieldUpdateOperationsInput | string | null
+    n8nWorkflowId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    userId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type WorkflowRunCreateInput = {
+    id?: string
+    status: string
+    output?: NullableJsonNullValueInput | InputJsonValue
+    error?: string | null
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    userId: string
+    workflow: WorkflowCreateNestedOneWithoutRunsInput
+  }
+
+  export type WorkflowRunUncheckedCreateInput = {
+    id?: string
+    workflowId: string
+    status: string
+    output?: NullableJsonNullValueInput | InputJsonValue
+    error?: string | null
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    userId: string
+  }
+
+  export type WorkflowRunUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    output?: NullableJsonNullValueInput | InputJsonValue
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    userId?: StringFieldUpdateOperationsInput | string
+    workflow?: WorkflowUpdateOneRequiredWithoutRunsNestedInput
+  }
+
+  export type WorkflowRunUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    workflowId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    output?: NullableJsonNullValueInput | InputJsonValue
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    userId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type WorkflowRunCreateManyInput = {
+    id?: string
+    workflowId: string
+    status: string
+    output?: NullableJsonNullValueInput | InputJsonValue
+    error?: string | null
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    userId: string
+  }
+
+  export type WorkflowRunUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    output?: NullableJsonNullValueInput | InputJsonValue
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    userId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type WorkflowRunUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    workflowId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    output?: NullableJsonNullValueInput | InputJsonValue
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     userId?: StringFieldUpdateOperationsInput | string
   }
 
@@ -7955,9 +9529,24 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type WorkflowRunListRelationFilter = {
+    every?: WorkflowRunWhereInput
+    some?: WorkflowRunWhereInput
+    none?: WorkflowRunWhereInput
+  }
+
+  export type WorkflowRunOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type WorkflowCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    description?: SortOrder
+    template?: SortOrder
+    n8nWorkflowId?: SortOrder
+    status?: SortOrder
+    lastRunAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
@@ -7966,6 +9555,11 @@ export namespace Prisma {
   export type WorkflowMaxOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    description?: SortOrder
+    template?: SortOrder
+    n8nWorkflowId?: SortOrder
+    status?: SortOrder
+    lastRunAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
@@ -7974,9 +9568,99 @@ export namespace Prisma {
   export type WorkflowMinOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    description?: SortOrder
+    template?: SortOrder
+    n8nWorkflowId?: SortOrder
+    status?: SortOrder
+    lastRunAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     userId?: SortOrder
+  }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type WorkflowScalarRelationFilter = {
+    is?: WorkflowWhereInput
+    isNot?: WorkflowWhereInput
+  }
+
+  export type WorkflowRunCountOrderByAggregateInput = {
+    id?: SortOrder
+    workflowId?: SortOrder
+    status?: SortOrder
+    output?: SortOrder
+    error?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    userId?: SortOrder
+  }
+
+  export type WorkflowRunMaxOrderByAggregateInput = {
+    id?: SortOrder
+    workflowId?: SortOrder
+    status?: SortOrder
+    error?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    userId?: SortOrder
+  }
+
+  export type WorkflowRunMinOrderByAggregateInput = {
+    id?: SortOrder
+    workflowId?: SortOrder
+    status?: SortOrder
+    error?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+    userId?: SortOrder
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type SessionCreateNestedManyWithoutUserInput = {
@@ -8159,12 +9843,68 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
+  export type WorkflowRunCreateNestedManyWithoutWorkflowInput = {
+    create?: XOR<WorkflowRunCreateWithoutWorkflowInput, WorkflowRunUncheckedCreateWithoutWorkflowInput> | WorkflowRunCreateWithoutWorkflowInput[] | WorkflowRunUncheckedCreateWithoutWorkflowInput[]
+    connectOrCreate?: WorkflowRunCreateOrConnectWithoutWorkflowInput | WorkflowRunCreateOrConnectWithoutWorkflowInput[]
+    createMany?: WorkflowRunCreateManyWorkflowInputEnvelope
+    connect?: WorkflowRunWhereUniqueInput | WorkflowRunWhereUniqueInput[]
+  }
+
+  export type WorkflowRunUncheckedCreateNestedManyWithoutWorkflowInput = {
+    create?: XOR<WorkflowRunCreateWithoutWorkflowInput, WorkflowRunUncheckedCreateWithoutWorkflowInput> | WorkflowRunCreateWithoutWorkflowInput[] | WorkflowRunUncheckedCreateWithoutWorkflowInput[]
+    connectOrCreate?: WorkflowRunCreateOrConnectWithoutWorkflowInput | WorkflowRunCreateOrConnectWithoutWorkflowInput[]
+    createMany?: WorkflowRunCreateManyWorkflowInputEnvelope
+    connect?: WorkflowRunWhereUniqueInput | WorkflowRunWhereUniqueInput[]
+  }
+
   export type UserUpdateOneRequiredWithoutWorkflowsNestedInput = {
     create?: XOR<UserCreateWithoutWorkflowsInput, UserUncheckedCreateWithoutWorkflowsInput>
     connectOrCreate?: UserCreateOrConnectWithoutWorkflowsInput
     upsert?: UserUpsertWithoutWorkflowsInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutWorkflowsInput, UserUpdateWithoutWorkflowsInput>, UserUncheckedUpdateWithoutWorkflowsInput>
+  }
+
+  export type WorkflowRunUpdateManyWithoutWorkflowNestedInput = {
+    create?: XOR<WorkflowRunCreateWithoutWorkflowInput, WorkflowRunUncheckedCreateWithoutWorkflowInput> | WorkflowRunCreateWithoutWorkflowInput[] | WorkflowRunUncheckedCreateWithoutWorkflowInput[]
+    connectOrCreate?: WorkflowRunCreateOrConnectWithoutWorkflowInput | WorkflowRunCreateOrConnectWithoutWorkflowInput[]
+    upsert?: WorkflowRunUpsertWithWhereUniqueWithoutWorkflowInput | WorkflowRunUpsertWithWhereUniqueWithoutWorkflowInput[]
+    createMany?: WorkflowRunCreateManyWorkflowInputEnvelope
+    set?: WorkflowRunWhereUniqueInput | WorkflowRunWhereUniqueInput[]
+    disconnect?: WorkflowRunWhereUniqueInput | WorkflowRunWhereUniqueInput[]
+    delete?: WorkflowRunWhereUniqueInput | WorkflowRunWhereUniqueInput[]
+    connect?: WorkflowRunWhereUniqueInput | WorkflowRunWhereUniqueInput[]
+    update?: WorkflowRunUpdateWithWhereUniqueWithoutWorkflowInput | WorkflowRunUpdateWithWhereUniqueWithoutWorkflowInput[]
+    updateMany?: WorkflowRunUpdateManyWithWhereWithoutWorkflowInput | WorkflowRunUpdateManyWithWhereWithoutWorkflowInput[]
+    deleteMany?: WorkflowRunScalarWhereInput | WorkflowRunScalarWhereInput[]
+  }
+
+  export type WorkflowRunUncheckedUpdateManyWithoutWorkflowNestedInput = {
+    create?: XOR<WorkflowRunCreateWithoutWorkflowInput, WorkflowRunUncheckedCreateWithoutWorkflowInput> | WorkflowRunCreateWithoutWorkflowInput[] | WorkflowRunUncheckedCreateWithoutWorkflowInput[]
+    connectOrCreate?: WorkflowRunCreateOrConnectWithoutWorkflowInput | WorkflowRunCreateOrConnectWithoutWorkflowInput[]
+    upsert?: WorkflowRunUpsertWithWhereUniqueWithoutWorkflowInput | WorkflowRunUpsertWithWhereUniqueWithoutWorkflowInput[]
+    createMany?: WorkflowRunCreateManyWorkflowInputEnvelope
+    set?: WorkflowRunWhereUniqueInput | WorkflowRunWhereUniqueInput[]
+    disconnect?: WorkflowRunWhereUniqueInput | WorkflowRunWhereUniqueInput[]
+    delete?: WorkflowRunWhereUniqueInput | WorkflowRunWhereUniqueInput[]
+    connect?: WorkflowRunWhereUniqueInput | WorkflowRunWhereUniqueInput[]
+    update?: WorkflowRunUpdateWithWhereUniqueWithoutWorkflowInput | WorkflowRunUpdateWithWhereUniqueWithoutWorkflowInput[]
+    updateMany?: WorkflowRunUpdateManyWithWhereWithoutWorkflowInput | WorkflowRunUpdateManyWithWhereWithoutWorkflowInput[]
+    deleteMany?: WorkflowRunScalarWhereInput | WorkflowRunScalarWhereInput[]
+  }
+
+  export type WorkflowCreateNestedOneWithoutRunsInput = {
+    create?: XOR<WorkflowCreateWithoutRunsInput, WorkflowUncheckedCreateWithoutRunsInput>
+    connectOrCreate?: WorkflowCreateOrConnectWithoutRunsInput
+    connect?: WorkflowWhereUniqueInput
+  }
+
+  export type WorkflowUpdateOneRequiredWithoutRunsNestedInput = {
+    create?: XOR<WorkflowCreateWithoutRunsInput, WorkflowUncheckedCreateWithoutRunsInput>
+    connectOrCreate?: WorkflowCreateOrConnectWithoutRunsInput
+    upsert?: WorkflowUpsertWithoutRunsInput
+    connect?: WorkflowWhereUniqueInput
+    update?: XOR<XOR<WorkflowUpdateToOneWithWhereWithoutRunsInput, WorkflowUpdateWithoutRunsInput>, WorkflowUncheckedUpdateWithoutRunsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -8313,6 +10053,29 @@ export namespace Prisma {
     _min?: NestedDateTimeNullableFilter<$PrismaModel>
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type SessionCreateWithoutUserInput = {
     id: string
@@ -8387,15 +10150,27 @@ export namespace Prisma {
   export type WorkflowCreateWithoutUserInput = {
     id?: string
     name: string
+    description?: string | null
+    template?: string | null
+    n8nWorkflowId?: string | null
+    status?: string
+    lastRunAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    runs?: WorkflowRunCreateNestedManyWithoutWorkflowInput
   }
 
   export type WorkflowUncheckedCreateWithoutUserInput = {
     id?: string
     name: string
+    description?: string | null
+    template?: string | null
+    n8nWorkflowId?: string | null
+    status?: string
+    lastRunAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    runs?: WorkflowRunUncheckedCreateNestedManyWithoutWorkflowInput
   }
 
   export type WorkflowCreateOrConnectWithoutUserInput = {
@@ -8495,6 +10270,11 @@ export namespace Prisma {
     NOT?: WorkflowScalarWhereInput | WorkflowScalarWhereInput[]
     id?: StringFilter<"Workflow"> | string
     name?: StringFilter<"Workflow"> | string
+    description?: StringNullableFilter<"Workflow"> | string | null
+    template?: StringNullableFilter<"Workflow"> | string | null
+    n8nWorkflowId?: StringNullableFilter<"Workflow"> | string | null
+    status?: StringFilter<"Workflow"> | string
+    lastRunAt?: DateTimeNullableFilter<"Workflow"> | Date | string | null
     createdAt?: DateTimeFilter<"Workflow"> | Date | string
     updatedAt?: DateTimeFilter<"Workflow"> | Date | string
     userId?: StringFilter<"Workflow"> | string
@@ -8657,6 +10437,36 @@ export namespace Prisma {
     create: XOR<UserCreateWithoutWorkflowsInput, UserUncheckedCreateWithoutWorkflowsInput>
   }
 
+  export type WorkflowRunCreateWithoutWorkflowInput = {
+    id?: string
+    status: string
+    output?: NullableJsonNullValueInput | InputJsonValue
+    error?: string | null
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    userId: string
+  }
+
+  export type WorkflowRunUncheckedCreateWithoutWorkflowInput = {
+    id?: string
+    status: string
+    output?: NullableJsonNullValueInput | InputJsonValue
+    error?: string | null
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    userId: string
+  }
+
+  export type WorkflowRunCreateOrConnectWithoutWorkflowInput = {
+    where: WorkflowRunWhereUniqueInput
+    create: XOR<WorkflowRunCreateWithoutWorkflowInput, WorkflowRunUncheckedCreateWithoutWorkflowInput>
+  }
+
+  export type WorkflowRunCreateManyWorkflowInputEnvelope = {
+    data: WorkflowRunCreateManyWorkflowInput | WorkflowRunCreateManyWorkflowInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutWorkflowsInput = {
     update: XOR<UserUpdateWithoutWorkflowsInput, UserUncheckedUpdateWithoutWorkflowsInput>
     create: XOR<UserCreateWithoutWorkflowsInput, UserUncheckedCreateWithoutWorkflowsInput>
@@ -8692,6 +10502,104 @@ export namespace Prisma {
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
   }
 
+  export type WorkflowRunUpsertWithWhereUniqueWithoutWorkflowInput = {
+    where: WorkflowRunWhereUniqueInput
+    update: XOR<WorkflowRunUpdateWithoutWorkflowInput, WorkflowRunUncheckedUpdateWithoutWorkflowInput>
+    create: XOR<WorkflowRunCreateWithoutWorkflowInput, WorkflowRunUncheckedCreateWithoutWorkflowInput>
+  }
+
+  export type WorkflowRunUpdateWithWhereUniqueWithoutWorkflowInput = {
+    where: WorkflowRunWhereUniqueInput
+    data: XOR<WorkflowRunUpdateWithoutWorkflowInput, WorkflowRunUncheckedUpdateWithoutWorkflowInput>
+  }
+
+  export type WorkflowRunUpdateManyWithWhereWithoutWorkflowInput = {
+    where: WorkflowRunScalarWhereInput
+    data: XOR<WorkflowRunUpdateManyMutationInput, WorkflowRunUncheckedUpdateManyWithoutWorkflowInput>
+  }
+
+  export type WorkflowRunScalarWhereInput = {
+    AND?: WorkflowRunScalarWhereInput | WorkflowRunScalarWhereInput[]
+    OR?: WorkflowRunScalarWhereInput[]
+    NOT?: WorkflowRunScalarWhereInput | WorkflowRunScalarWhereInput[]
+    id?: StringFilter<"WorkflowRun"> | string
+    workflowId?: StringFilter<"WorkflowRun"> | string
+    status?: StringFilter<"WorkflowRun"> | string
+    output?: JsonNullableFilter<"WorkflowRun">
+    error?: StringNullableFilter<"WorkflowRun"> | string | null
+    startedAt?: DateTimeFilter<"WorkflowRun"> | Date | string
+    completedAt?: DateTimeNullableFilter<"WorkflowRun"> | Date | string | null
+    userId?: StringFilter<"WorkflowRun"> | string
+  }
+
+  export type WorkflowCreateWithoutRunsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    template?: string | null
+    n8nWorkflowId?: string | null
+    status?: string
+    lastRunAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutWorkflowsInput
+  }
+
+  export type WorkflowUncheckedCreateWithoutRunsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    template?: string | null
+    n8nWorkflowId?: string | null
+    status?: string
+    lastRunAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    userId: string
+  }
+
+  export type WorkflowCreateOrConnectWithoutRunsInput = {
+    where: WorkflowWhereUniqueInput
+    create: XOR<WorkflowCreateWithoutRunsInput, WorkflowUncheckedCreateWithoutRunsInput>
+  }
+
+  export type WorkflowUpsertWithoutRunsInput = {
+    update: XOR<WorkflowUpdateWithoutRunsInput, WorkflowUncheckedUpdateWithoutRunsInput>
+    create: XOR<WorkflowCreateWithoutRunsInput, WorkflowUncheckedCreateWithoutRunsInput>
+    where?: WorkflowWhereInput
+  }
+
+  export type WorkflowUpdateToOneWithWhereWithoutRunsInput = {
+    where?: WorkflowWhereInput
+    data: XOR<WorkflowUpdateWithoutRunsInput, WorkflowUncheckedUpdateWithoutRunsInput>
+  }
+
+  export type WorkflowUpdateWithoutRunsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    template?: NullableStringFieldUpdateOperationsInput | string | null
+    n8nWorkflowId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutWorkflowsNestedInput
+  }
+
+  export type WorkflowUncheckedUpdateWithoutRunsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    template?: NullableStringFieldUpdateOperationsInput | string | null
+    n8nWorkflowId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    userId?: StringFieldUpdateOperationsInput | string
+  }
+
   export type SessionCreateManyUserInput = {
     id: string
     expiresAt: Date | string
@@ -8720,6 +10628,11 @@ export namespace Prisma {
   export type WorkflowCreateManyUserInput = {
     id?: string
     name: string
+    description?: string | null
+    template?: string | null
+    n8nWorkflowId?: string | null
+    status?: string
+    lastRunAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -8802,22 +10715,79 @@ export namespace Prisma {
   export type WorkflowUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    template?: NullableStringFieldUpdateOperationsInput | string | null
+    n8nWorkflowId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    runs?: WorkflowRunUpdateManyWithoutWorkflowNestedInput
   }
 
   export type WorkflowUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    template?: NullableStringFieldUpdateOperationsInput | string | null
+    n8nWorkflowId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    runs?: WorkflowRunUncheckedUpdateManyWithoutWorkflowNestedInput
   }
 
   export type WorkflowUncheckedUpdateManyWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    template?: NullableStringFieldUpdateOperationsInput | string | null
+    n8nWorkflowId?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    lastRunAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WorkflowRunCreateManyWorkflowInput = {
+    id?: string
+    status: string
+    output?: NullableJsonNullValueInput | InputJsonValue
+    error?: string | null
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    userId: string
+  }
+
+  export type WorkflowRunUpdateWithoutWorkflowInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    output?: NullableJsonNullValueInput | InputJsonValue
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    userId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type WorkflowRunUncheckedUpdateWithoutWorkflowInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    output?: NullableJsonNullValueInput | InputJsonValue
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    userId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type WorkflowRunUncheckedUpdateManyWithoutWorkflowInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    output?: NullableJsonNullValueInput | InputJsonValue
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    userId?: StringFieldUpdateOperationsInput | string
   }
 
 

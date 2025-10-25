@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
-  const backend = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  const backend = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
   try {
     const { prompt = "", docIds = "", convId = "" } = await request.json().catch(() => ({}));
     const qp = new URLSearchParams({ prompt });

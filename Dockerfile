@@ -12,7 +12,13 @@ RUN npm install -g pnpm
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Copy source code
+# Copy Prisma schema first
+COPY prisma ./prisma
+
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Copy rest of source code
 COPY . .
 
 # Build argument for backend URL

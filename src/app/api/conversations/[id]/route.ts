@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const backend = process.env.NEXT_PUBLIC_BACKEND_URL;
   if (!backend)
     return NextResponse.json(
@@ -13,7 +14,7 @@ export async function GET(
 
   try {
     const resp = await fetch(
-      `${backend.replace(/\/$/, "")}/conversations/${params.id}`
+      `${backend.replace(/\/$/, "")}/conversations/${id}`
     );
     const json = await resp.json().catch(() => ({ ok: false }));
     return NextResponse.json(json, { status: resp.status });
@@ -28,8 +29,9 @@ export async function GET(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const backend = process.env.NEXT_PUBLIC_BACKEND_URL;
   if (!backend)
     return NextResponse.json(
@@ -39,7 +41,7 @@ export async function DELETE(
 
   try {
     const resp = await fetch(
-      `${backend.replace(/\/$/, "")}/conversations/${params.id}`,
+      `${backend.replace(/\/$/, "")}/conversations/${id}`,
       { method: "DELETE" }
     );
     const json = await resp.json().catch(() => ({ ok: false }));

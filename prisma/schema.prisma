@@ -80,10 +80,31 @@ model Verification {
 model Workflow {
   id          String   @id @default(cuid())
   name        String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  description String?
+  template    String?  // template type: email_summarizer, meeting_scheduler, etc.
+  n8nWorkflowId String? // n8n workflow ID
+  status      String   @default("draft") // draft, active, paused
+  lastRunAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   userId String
   user User @relation(fields: [userId],references: [id],onDelete: Cascade)
+  
+  runs WorkflowRun[]
+}
 
+model WorkflowRun {
+  id          String   @id @default(cuid())
+  workflowId  String
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  
+  status      String   // running, completed, failed
+  output      Json?
+  error       String?
+  
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  
+  userId      String
 }

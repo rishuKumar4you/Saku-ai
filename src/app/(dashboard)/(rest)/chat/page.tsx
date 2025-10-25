@@ -5,10 +5,11 @@ import { ErrorBoundary } from "react-error-boundary";
 import { ChatInterface } from "@/features/chat/components/chat-interface";
 import { ChatHistorySidebar } from "@/features/chat/components/chat-history-sidebar";
 
-const Page = async ({ searchParams }: { searchParams: { convId?: string } }) => {
+const Page = async ({ searchParams }: { searchParams: Promise<{ convId?: string }> }) => {
     await requireAuth();
     
-    const convId = searchParams?.convId || null;
+    const params = await searchParams;
+    const convId = params?.convId || null;
     
     return (
         <div className="flex h-full">

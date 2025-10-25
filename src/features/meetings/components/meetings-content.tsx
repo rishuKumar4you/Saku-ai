@@ -123,6 +123,36 @@ export const MeetingsContent = ({ activeTab, searchQuery }: MeetingsContentProps
                 </div>
                 <div className="flex items-center gap-2">
                     <Button variant="outline" onClick={load} disabled={loading}>Refresh</Button>
+                    <Button variant="outline" onClick={async () => {
+                        if (!confirm('Import recent Google Meet recordings from Drive?')) return;
+                        try {
+                            const resp = await fetch('/api/integrations/google/meet/import', { method: 'POST' });
+                            const json = await resp.json();
+                            if (resp.ok) {
+                                alert(`Imported ${json.created?.length || 0} Google Meet recordings!`);
+                                await load();
+                            } else {
+                                alert(`Error: ${json.error || 'Import failed'}`);
+                            }
+                        } catch (e) {
+                            alert('Failed to import from Google Meet');
+                        }
+                    }}>Import from Google Meet</Button>
+                    <Button variant="outline" onClick={async () => {
+                        if (!confirm('Import recent Zoom recordings?')) return;
+                        try {
+                            const resp = await fetch('/api/integrations/zoom/import', { method: 'POST' });
+                            const json = await resp.json();
+                            if (resp.ok) {
+                                alert(`Imported ${json.created?.length || 0} Zoom recordings!`);
+                                await load();
+                            } else {
+                                alert(`Error: ${json.error || 'Import failed'}`);
+                            }
+                        } catch (e) {
+                            alert('Failed to import from Zoom');
+                        }
+                    }}>Import from Zoom</Button>
                     <input id="meeting-upload-input" type="file" accept="video/*,audio/*" className="hidden" onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;

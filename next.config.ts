@@ -4,6 +4,7 @@ import type {NextConfig} from 'next';
 const nextConfig: NextConfig = {
   /* config options here */
   output: 'standalone',  // Required for Docker deployment
+  serverExternalPackages: ['@prisma/client', '@opentelemetry/instrumentation'],
   // devIndicators: {
   //   buildActivity: false,  // 👈 this shows the "N" icon
   // },

@@ -17,7 +17,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const backend = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  const backend = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
 
   try {
     const body = await request.json();

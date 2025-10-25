@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Clock, Check, Plus, AlertTriangle } from "lucide-react";
+import { Clock, Check, Plus, AlertTriangle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,29 +31,54 @@ interface TasksSectionProps {
 export const TasksSection = ({ activeTab, onTabChange }: TasksSectionProps) => {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [approvals, setApprovals] = useState<Approval[]>([]);
+    const [loadingTaskId, setLoadingTaskId] = useState<string | null>(null);
+    const [loadingApprovalId, setLoadingApprovalId] = useState<string | null>(null);
 
     useEffect(() => {
         let mounted = true;
         (async () => {
             try {
-                const r = await fetch("/api/dashboard", { cache: "no-store" });
-                const j = await r.json();
-                const msgs: any[] = Array.isArray(j?.data?.gmailMessages) ? j.data.gmailMessages : [];
-                const t: Task[] = msgs.slice(0, 5).map((m: any, i: number) => ({
-                    id: String(m?.id || i),
-                    title: `Reply to: ${String(m?.subject || "(No Subject)")}`,
-                    time: String(m?.date || ""),
-                    priority: "low",
-                    completed: false,
-                }));
-                const cals: any[] = Array.isArray(j?.data?.calendarEvents) ? j.data.calendarEvents : [];
-                const a: Approval[] = cals.slice(0, 5).map((e: any, i: number) => ({
-                    id: String(e?.id || i),
-                    title: String(e?.summary || "Calendar Event"),
-                    description: String(e?.start?.dateTime || e?.start || ""),
-                    priority: "high",
-                    completed: false,
-                }));
+                // Fetch both dashboard data (for display) and backend tasks (for state)
+                const [dashboardResp, tasksResp] = await Promise.all([
+                    fetch("/api/dashboard", { cache: "no-store" }),
+                    fetch("/api/tasks", { cache: "no-store" }),
+                ]);
+                
+                const dashboardData = await dashboardResp.json();
+                const tasksData = await tasksResp.json();
+                
+                const msgs: any[] = Array.isArray(dashboardData?.data?.gmailMessages) ? dashboardData.data.gmailMessages : [];
+                const existingTasks: any[] = Array.isArray(tasksData?.tasks) ? tasksData.tasks : [];
+                
+                // Create task map from existing tasks
+                const taskMap = new Map(existingTasks.map((t: any) => [t.sourceId || t.id, t]));
+                
+                // Map Gmail messages to tasks, preserving backend state
+                const t: Task[] = msgs.slice(0, 5).map((m: any) => {
+                    const sourceId = String(m?.id || "");
+                    const existingTask = taskMap.get(sourceId);
+                    return {
+                        id: existingTask?.id || sourceId,
+                        title: `Reply to: ${String(m?.subject || "(No Subject)")}`,
+                        time: String(m?.date || ""),
+                        priority: "low",
+                        completed: existingTask?.completed || false,
+                    };
+                });
+                
+                const cals: any[] = Array.isArray(dashboardData?.data?.calendarEvents) ? dashboardData.data.calendarEvents : [];
+                const a: Approval[] = cals.slice(0, 5).map((e: any) => {
+                    const sourceId = String(e?.id || "");
+                    const existingTask = taskMap.get(sourceId);
+                    return {
+                        id: existingTask?.id || sourceId,
+                        title: String(e?.summary || "Calendar Event"),
+                        description: String(e?.start?.dateTime || e?.start || ""),
+                        priority: "high",
+                        completed: existingTask?.completed || false,
+                    };
+                });
+                
                 if (mounted) {
                     setTasks(t);
                     setApprovals(a);
@@ -68,16 +93,68 @@ export const TasksSection = ({ activeTab, onTabChange }: TasksSectionProps) => {
         return () => { mounted = false; };
     }, []);
 
-    const handleTaskComplete = (taskId: string) => {
-        setTasks(prev => prev.map(task => 
-            task.id === taskId ? { ...task, completed: !task.completed } : task
-        ));
+    const handleTaskComplete = async (taskId: string) => {
+        setLoadingTaskId(taskId);
+        try {
+            // Find the task to toggle
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            // Update in backend
+            const formData = new FormData();
+            formData.set('completed', String(!task.completed));
+            
+            const response = await fetch(`/api/tasks/${taskId}`, {
+                method: 'PUT',
+                body: formData,
+            });
+            
+            if (response.ok) {
+                // Update local state on success
+                setTasks(prev => prev.map(t => 
+                    t.id === taskId ? { ...t, completed: !t.completed } : t
+                ));
+            } else {
+                throw new Error('Failed to update task');
+            }
+        } catch (error) {
+            console.error('Failed to update task:', error);
+            alert('Failed to update task. Please try again.');
+        } finally {
+            setLoadingTaskId(null);
+        }
     };
 
-    const handleApprovalComplete = (approvalId: string) => {
-        setApprovals(prev => prev.map(approval => 
-            approval.id === approvalId ? { ...approval, completed: !approval.completed } : approval
-        ));
+    const handleApprovalComplete = async (approvalId: string) => {
+        setLoadingApprovalId(approvalId);
+        try {
+            // Find the approval to toggle
+            const approval = approvals.find(a => a.id === approvalId);
+            if (!approval) return;
+            
+            // Update in backend (approvals are also tasks)
+            const formData = new FormData();
+            formData.set('completed', String(!approval.completed));
+            
+            const response = await fetch(`/api/tasks/${approvalId}`, {
+                method: 'PUT',
+                body: formData,
+            });
+            
+            if (response.ok) {
+                // Update local state on success
+                setApprovals(prev => prev.map(a => 
+                    a.id === approvalId ? { ...a, completed: !a.completed } : a
+                ));
+            } else {
+                throw new Error('Failed to update approval');
+            }
+        } catch (error) {
+            console.error('Failed to update approval:', error);
+            alert('Failed to update approval. Please try again.');
+        } finally {
+            setLoadingApprovalId(null);
+        }
     };
 
     const getPriorityBadge = (priority: "high" | "low") => {
@@ -113,7 +190,9 @@ export const TasksSection = ({ activeTab, onTabChange }: TasksSectionProps) => {
                     
                     <TabsContent value="tasks" className="space-y-3 mt-4">
                         {tasks.map((task) => (
-                            <div key={task.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border border-gray-200 rounded-lg">
+                            <div key={task.id} className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border rounded-lg transition-all ${
+                                task.completed ? 'border-green-200 bg-green-50' : 'border-gray-200'
+                            }`}>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center flex-wrap gap-2 mb-1">
                                         <div className="flex items-center space-x-1">
@@ -122,17 +201,28 @@ export const TasksSection = ({ activeTab, onTabChange }: TasksSectionProps) => {
                                         </div>
                                         {getPriorityBadge(task.priority)}
                                     </div>
-                                    <h3 className="font-medium text-gray-900 text-sm sm:text-base truncate">{task.title}</h3>
+                                    <h3 className={`font-medium text-sm sm:text-base truncate ${
+                                        task.completed ? 'text-gray-500 line-through' : 'text-gray-900'
+                                    }`}>{task.title}</h3>
                                 </div>
                                 <Button 
                                     size="sm" 
                                     variant="outline"
                                     onClick={() => handleTaskComplete(task.id)}
+                                    disabled={loadingTaskId === task.id}
                                     className="flex items-center justify-center space-x-1 shrink-0 w-full sm:w-auto"
                                 >
-                                    <Check className="w-4 h-4 text-green-600" />
-                                    <span className="hidden sm:inline">Mark As Complete</span>
-                                    <span className="sm:hidden">Complete</span>
+                                    {loadingTaskId === task.id ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Check className={`w-4 h-4 ${task.completed ? 'text-green-600' : 'text-gray-400'}`} />
+                                    )}
+                                    <span className="hidden sm:inline">
+                                        {task.completed ? 'Completed' : 'Mark As Complete'}
+                                    </span>
+                                    <span className="sm:hidden">
+                                        {task.completed ? 'Done' : 'Complete'}
+                                    </span>
                                 </Button>
                             </div>
                         ))}
@@ -140,23 +230,36 @@ export const TasksSection = ({ activeTab, onTabChange }: TasksSectionProps) => {
                     
                     <TabsContent value="approvals" className="space-y-3 mt-4">
                         {approvals.map((approval) => (
-                            <div key={approval.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border border-gray-200 rounded-lg">
+                            <div key={approval.id} className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border rounded-lg transition-all ${
+                                approval.completed ? 'border-green-200 bg-green-50' : 'border-gray-200'
+                            }`}>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center space-x-2 mb-1">
                                         {getPriorityBadge(approval.priority)}
                                     </div>
-                                    <h3 className="font-medium text-gray-900 mb-1 text-sm sm:text-base">{approval.title}</h3>
+                                    <h3 className={`font-medium mb-1 text-sm sm:text-base ${
+                                        approval.completed ? 'text-gray-500 line-through' : 'text-gray-900'
+                                    }`}>{approval.title}</h3>
                                     <p className="text-sm text-gray-600 line-clamp-2">{approval.description}</p>
                                 </div>
                                 <Button 
                                     size="sm" 
                                     variant="outline"
                                     onClick={() => handleApprovalComplete(approval.id)}
+                                    disabled={loadingApprovalId === approval.id}
                                     className="flex items-center justify-center space-x-1 shrink-0 w-full sm:w-auto"
                                 >
-                                    <Check className="w-4 h-4 text-green-600" />
-                                    <span className="hidden sm:inline">Mark As Approve</span>
-                                    <span className="sm:hidden">Approve</span>
+                                    {loadingApprovalId === approval.id ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Check className={`w-4 h-4 ${approval.completed ? 'text-green-600' : 'text-gray-400'}`} />
+                                    )}
+                                    <span className="hidden sm:inline">
+                                        {approval.completed ? 'Approved' : 'Mark As Approve'}
+                                    </span>
+                                    <span className="sm:hidden">
+                                        {approval.completed ? 'Done' : 'Approve'}
+                                    </span>
                                 </Button>
                             </div>
                         ))}

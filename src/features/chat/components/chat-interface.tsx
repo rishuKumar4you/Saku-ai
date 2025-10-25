@@ -119,6 +119,7 @@ export const ChatInterface = () => {
             // hint to backend for RAG/connector usage
             if (sources.files) qp.set("docIds", "*");
             if (convId) qp.set("convId", convId);
+            
             const resp = await fetch(`/api/chat/stream?${qp.toString()}`, {
                 headers: { Accept: "text/event-stream", "Cache-Control": "no-cache" },
                 signal: controller.signal,

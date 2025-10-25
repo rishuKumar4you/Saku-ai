@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   // Default backend URL if not set in environment
   const backend =
-    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
 
   try {
     // Proxy to FastAPI backend SSE
