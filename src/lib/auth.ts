@@ -7,8 +7,9 @@ import {polarClient} from './polar';
 
 export const auth = betterAuth({
   // Your BetterAuth configuration here
-  baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_BETTER_AUTH_URL || 'http://localhost:3000',
-  
+  baseURL: process.env.BETTER_AUTH_URL ||
+      process.env.NEXT_PUBLIC_BETTER_AUTH_URL || 'http://localhost:3000',
+
   database: prismaAdapter(prisma, {
     provider: 'postgresql',
 
@@ -16,6 +17,7 @@ export const auth = betterAuth({
 
   trustedOrigins: [
     'https://saku-ai.vercel.app',
+    'https://saku-ai-test.vercel.app',
     'https://saku-ai-ksinghal609-gmailcoms-projects.vercel.app',
     process.env.BETTER_AUTH_URL || '',
     process.env.NEXT_PUBLIC_BETTER_AUTH_URL || '',
@@ -41,7 +43,7 @@ export const auth = betterAuth({
     use: [
       checkout({
         products: [{
-          productId: 'be70b7be-be9a-4101-be83-73dd38c3cda0',  
+          productId: 'be70b7be-be9a-4101-be83-73dd38c3cda0',
           slug: 'pro',
         }],
         successUrl: process.env.POLAR_SUCCESS_URL,
