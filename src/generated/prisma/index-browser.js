@@ -20,12 +20,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 6.17.1
- * Query Engine version: 272a37d34178c2894197e17273bf937f25acdeac
+ * Prisma Client JS version: 6.18.0
+ * Query Engine version: 34b5a692b7bd79939a9a2c3ef97d816e749cda2f
  */
 Prisma.prismaVersion = {
-  client: "6.17.1",
-  engine: "272a37d34178c2894197e17273bf937f25acdeac"
+  client: "6.18.0",
+  engine: "34b5a692b7bd79939a9a2c3ef97d816e749cda2f"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -174,9 +174,35 @@ exports.Prisma.WorkflowScalarFieldEnum = {
   userId: 'userId'
 };
 
+exports.Prisma.NodeScalarFieldEnum = {
+  id: 'id',
+  workflowId: 'workflowId',
+  name: 'name',
+  type: 'type',
+  position: 'position',
+  data: 'data',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ConnectionScalarFieldEnum = {
+  id: 'id',
+  workflowId: 'workflowId',
+  fromNodeId: 'fromNodeId',
+  toNodeId: 'toNodeId',
+  fromOutput: 'fromOutput',
+  toInput: 'toInput',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.QueryMode = {
@@ -189,13 +215,25 @@ exports.Prisma.NullsOrder = {
   last: 'last'
 };
 
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+exports.NodeType = exports.$Enums.NodeType = {
+  INITIAL: 'INITIAL',
+  MANUAL_TRIGGER: 'MANUAL_TRIGGER',
+  HTTP_REQUEST: 'HTTP_REQUEST'
+};
 
 exports.Prisma.ModelName = {
   User: 'User',
   Session: 'Session',
   Account: 'Account',
   Verification: 'Verification',
-  Workflow: 'Workflow'
+  Workflow: 'Workflow',
+  Node: 'Node',
+  Connection: 'Connection'
 };
 
 /**
