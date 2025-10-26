@@ -165,9 +165,7 @@ export const GeminiDialog = ({
                                         </FormControl>
                                         <SelectContent>
                                             <SelectItem value="gemini-2.5-flash">Gemini 2.5 Flash</SelectItem>
-                                            <SelectItem value="gemini-1.5-pro">Gemini 1.5 Pro</SelectItem>
-                                            <SelectItem value="gemini-1.5-flash">Gemini 1.5 Flash</SelectItem>
-                                            <SelectItem value="gemini-1.0-pro">Gemini 1.0 Pro</SelectItem>
+                                            <SelectItem value="gemini-2.5-pro">Gemini 1.5 Pro</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormDescription>

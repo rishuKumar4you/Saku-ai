@@ -6,6 +6,8 @@ import {
     GlobeIcon,
     MousePointerIcon,
     BrainIcon,
+    MailIcon,
+    ClockIcon,
 } from "lucide-react";
 
 import { useCallback } from "react";
@@ -36,7 +38,18 @@ const triggerNodes: NodeTypeOption[] = [
         description: "Runs the flow on clicking a button. Good for getting started quickly.",
         icon: MousePointerIcon,
     },
-
+    {
+        type: NodeType.EMAIL_TRIGGER,
+        label: "Email Trigger",
+        description: "Triggers when a new email is received via Google Gmail.",
+        icon: MailIcon,
+    },
+    {
+        type: NodeType.SCHEDULE_TRIGGER,
+        label: "Schedule Trigger",
+        description: "Triggers at regular time intervals (seconds, minutes, hours).",
+        icon: ClockIcon,
+    },
 ];
 
 const executionNodes: NodeTypeOption[] = [
@@ -63,6 +76,12 @@ const executionNodes: NodeTypeOption[] = [
         label: "Anthropic",
         description: "AI processing with Anthropic Claude models",
         icon: BrainIcon,
+    },
+    {
+        type: NodeType.EMAIL,
+        label: "Email",
+        description: "Send emails via Google SMTP",
+        icon: MailIcon,
     },
 ];
 
