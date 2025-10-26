@@ -23,9 +23,9 @@ export const ScheduleTriggerNode = (props: NodeProps) => {
                 open={dialogOpen} 
                 onOpenChange={setDialogOpen}
                 onSubmit={handleSubmit}
-                defaultTime={nodeData?.time}
-                defaultUnit={nodeData?.unit}
-                defaultEnabled={nodeData?.enabled}
+                defaultTime={nodeData?.time as number | undefined}
+                defaultUnit={nodeData?.unit as string | undefined}
+                defaultEnabled={nodeData?.enabled as boolean | undefined}
             />
             <BaseTriggerNode
                 {...props}

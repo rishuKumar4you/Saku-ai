@@ -16,25 +16,10 @@ export function GmailOAuthForm({ onSuccess }: GmailOAuthFormProps) {
     setIsConnecting(true);
     
     try {
-      // For now, we'll simulate the OAuth flow
-      // In a real implementation, this would redirect to Google OAuth
-      // and handle the callback to store the tokens
-      
-      // TODO: Implement actual Gmail OAuth flow
-      // This would involve:
-      // 1. Redirecting to Google OAuth with proper scopes
-      // 2. Handling the callback with authorization code
-      // 3. Exchanging code for access/refresh tokens
-      // 4. Storing tokens in the database
-      
-      console.log('Gmail OAuth connection would be initiated here');
-      
-      // For demonstration, we'll show a message
-      alert('Gmail OAuth integration will be implemented in the execution phase. This will redirect to Google OAuth to authorize Gmail access.');
-      
+      // Redirect to Gmail OAuth endpoint
+      window.location.href = '/api/auth/gmail';
     } catch (error) {
       console.error('Gmail OAuth error:', error);
-    } finally {
       setIsConnecting(false);
     }
   };

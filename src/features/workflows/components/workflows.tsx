@@ -49,7 +49,10 @@ export const WorkflowsHeader = ({ disabled }: { disabled?: boolean }) => {
     const handleCreate = () => {
         createWorkflow.mutate(undefined, {
             onSuccess: (data) => {
-                router.push(`/workflows/$(data.id)`);
+                // Add a small delay to ensure database transaction is committed
+                setTimeout(() => {
+                    router.push(`/workflows/${data.id}`);
+                }, 100);
             },
             onError: (error) => {
                 handleError(error);

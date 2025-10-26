@@ -6,154 +6,76 @@ import {createOpenAI} from '@ai-sdk/openai';
 import {generateText} from 'ai';
 import {google as googleapis} from 'googleapis';
 
-import {inngest} from './client';
+// Direct execution for development mode
+export async function executeWorkflowDirectly(
+    executionId: string, workflow: any, userId: string) {
+  console.log(
+      'Starting direct workflow execution:',
+      {executionId, workflowId: workflow.id, userId});
 
-const googleAI = createGoogleGenerativeAI();
-const openai = createOpenAI();
-const anthropic = createAnthropic();
+  try {
+    // Update execution status to RUNNING
+    await prisma.execution.update({
+      where: {id: executionId},
+      data: {
+        status: ExecutionStatus.RUNNING,
+        updatedAt: new Date(),
+      },
+    });
 
-// Original AI execution function (keeping for backward compatibility)
-export const execute = inngest.createFunction(
-    {id: 'execute-ai'},
-    {event: 'execute/ai'},
+    // Get user credentials
+    const credentials = await prisma.credential.findMany({
+      where: {
+        userId,
+        isActive: true,
+      },
+    });
 
-    async ({event, step}) => {
-      await step.sleep('pretend', '5s')
-      const {
-        steps: geminiSteps
-      } = await step.ai.wrap('gemini-generate-text', generateText, {
-        system:
-            'You are a helpful assistant that generates text based on user prompts.',
-        prompt: 'what is 2+2?',
-        experimental_telemetry: {
-          isEnabled: true,
-          recordInputs: true,
-          recordOutputs: true,
-        },
-        model: googleAI('gemini-2.5-flash'),
-      });
+    console.log(
+        'Found credentials:',
+        credentials.map(c => ({type: c.type, hasKey: !!c.apiKey})));
 
-      const {
-        steps: openaiSteps
-      } = await step.ai.wrap('openai-generate-text', generateText, {
-        system:
-            'You are a helpful assistant that generates text based on user prompts.',
-        prompt: 'what is 2+2?',
-        model: openai('gpt-4o'),
-      });
+    // Build execution graph
+    const executionGraph =
+        buildExecutionGraph(workflow.nodes, workflow.connections);
+    console.log('Built execution graph with', executionGraph.size, 'nodes');
 
-      const {
-        steps: anthropicSteps
-      } = await step.ai.wrap('anthropic-generate-text', generateText, {
-        system:
-            'You are a helpful assistant that generates text based on user prompts.',
-        prompt: 'what is 2+2?',
-        model: anthropic('claude-sonnet-4-5'),
-      });
+    // Execute workflow nodes
+    const results = await executeWorkflowNodes(executionGraph, credentials);
+    console.log(
+        'Workflow execution completed with results:', Object.keys(results));
 
-      return {
-        geminiSteps, openaiSteps, anthropicSteps,
-      }
-    },
-);
+    // Update execution with results
+    await prisma.execution.update({
+      where: {id: executionId},
+      data: {
+        status: ExecutionStatus.COMPLETED,
+        result: results,
+        completedAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
 
-// New workflow execution function
-export const executeWorkflow = inngest.createFunction(
-    {id: 'execute-workflow'},
-    {event: 'workflow/execute'},
+    console.log('Execution completed successfully');
+    return {success: true, results};
 
-    async ({event, step}) => {
-      const {executionId, workflowId, userId} = event.data;
+  } catch (error) {
+    console.error('Workflow execution error:', error);
 
-      console.log(
-          'Starting workflow execution:', {executionId, workflowId, userId});
+    // Update execution with error
+    await prisma.execution.update({
+      where: {id: executionId},
+      data: {
+        status: ExecutionStatus.FAILED,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        completedAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
 
-      // Update execution status to RUNNING
-      await step.run('update-execution-status', async () => {
-        console.log('Updating execution status to RUNNING');
-        return prisma.execution.update({
-          where: {id: executionId},
-          data: {
-            status: ExecutionStatus.RUNNING,
-            updatedAt: new Date(),
-          },
-        });
-      });
-
-      try {
-        // Get workflow with nodes and connections
-        const workflow = await step.run('get-workflow', async () => {
-          return prisma.workflow.findFirst({
-            where: {id: workflowId},
-            include: {
-              nodes: true,
-              connections: true,
-            },
-          });
-        });
-
-        if (!workflow) {
-          throw new Error('Workflow not found');
-        }
-
-        // Get user credentials
-        const credentials = await step.run('get-credentials', async () => {
-          return prisma.credential.findMany({
-            where: {
-              userId,
-              isActive: true,
-            },
-          });
-        });
-
-        // Build execution graph
-        const executionGraph =
-            await step.run('build-execution-graph', async () => {
-              const graph =
-                  buildExecutionGraph(workflow.nodes, workflow.connections);
-              console.log('Built execution graph:', graph);
-              return graph as Map<string, any>;
-            });
-
-        // Execute workflow nodes
-        const results = await step.run('execute-nodes', async () => {
-          return executeWorkflowNodes(
-              executionGraph as Map<string, any>, credentials);
-        });
-
-        // Update execution with results
-        await step.run('update-execution-complete', async () => {
-          return prisma.execution.update({
-            where: {id: executionId},
-            data: {
-              status: ExecutionStatus.COMPLETED,
-              result: results,
-              completedAt: new Date(),
-              updatedAt: new Date(),
-            },
-          });
-        });
-
-        return {success: true, results};
-
-      } catch (error) {
-        // Update execution with error
-        await step.run('update-execution-error', async () => {
-          return prisma.execution.update({
-            where: {id: executionId},
-            data: {
-              status: ExecutionStatus.FAILED,
-              error: error instanceof Error ? error.message : 'Unknown error',
-              completedAt: new Date(),
-              updatedAt: new Date(),
-            },
-          });
-        });
-
-        throw error;
-      }
-    },
-);
+    throw error;
+  }
+}
 
 // Helper function to build execution graph
 function buildExecutionGraph(
@@ -198,6 +120,7 @@ async function executeWorkflowNodes(
   // Find trigger nodes (nodes with no dependencies)
   const triggerNodes =
       Array.from(graph.values()).filter(node => node.dependencies.length === 0);
+  console.log('Found trigger nodes:', triggerNodes.map(n => n.node.type));
 
   // Execute nodes in topological order
   const queue = [...triggerNodes];
@@ -216,10 +139,16 @@ async function executeWorkflowNodes(
       continue;
     }
 
+    console.log('Executing node:', current.node.type, current.node.id);
+
     // Execute the node
     const result = await executeNode(current.node, results, credentialMap);
     results.set(current.node.id, result);
     executed.add(current.node.id);
+
+    console.log(
+        'Node execution result:',
+        {type: current.node.type, status: result.status});
 
     // Add dependents to queue
     current.dependents.forEach((depId: string) => {
@@ -287,6 +216,8 @@ async function executeAINode(
   }
 
   try {
+    console.log(`Executing ${provider} AI node with model:`, nodeData.model);
+
     // Configure the AI client with the API key from database
     let model;
     if (provider === 'openai') {
@@ -326,6 +257,8 @@ async function executeAINode(
     });
 
     const processingTime = Date.now() - startTime;
+
+    console.log(`AI execution completed in ${processingTime}ms`);
 
     return {
       type: 'ai',
@@ -464,15 +397,24 @@ async function executeEmailNode(
 
 // Helper function to execute HTTP request nodes
 async function executeHttpRequestNode(nodeData: any) {
-  // This is a simplified implementation
-  // In a real implementation, you would make the actual HTTP request
-  return {
-    type: 'http',
-    status: 'completed',
-    data: {
-      url: nodeData.url || 'https://example.com',
-      method: nodeData.method || 'GET',
-      response: 'HTTP request completed',
-    },
-  };
+  try {
+    console.log('Executing HTTP request node:', nodeData.url);
+
+    // This is a simplified implementation
+    // In a real implementation, you would make the actual HTTP request
+    return {
+      type: 'http',
+      status: 'completed',
+      data: {
+        url: nodeData.url || 'https://example.com',
+        method: nodeData.method || 'GET',
+        response: 'HTTP request completed (simulated)',
+        timestamp: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    console.error('HTTP request execution error:', error);
+    throw new Error(`HTTP request execution failed: ${
+        error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }

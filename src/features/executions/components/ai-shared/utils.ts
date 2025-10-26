@@ -137,18 +137,24 @@ export async function processAIRequest(
         enhancePromptForTextGeneration(processedPrompt);
 
     // Configure the AI client with API key
-    const client = providerConfig.client({
-      apiKey: apiKey || process.env[`${provider.toUpperCase()}_API_KEY`],
-    });
+    let model;
+    if (provider === 'openai') {
+      model = openai(nodeData.model);
+    } else if (provider === 'gemini') {
+      model = google(nodeData.model);
+    } else if (provider === 'anthropic') {
+      model = anthropic(nodeData.model);
+    } else {
+      throw new Error(`Unknown AI provider: ${provider}`);
+    }
 
     const startTime = Date.now();
 
     // Generate text using the AI SDK
     const result = await generateText({
-      model: client(nodeData.model),
+      model,
       prompt: enhancedPrompt,
       temperature: nodeData.temperature,
-      maxTokens: nodeData.maxTokens,
     });
 
     const processingTime = Date.now() - startTime;

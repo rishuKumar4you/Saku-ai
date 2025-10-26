@@ -23,9 +23,9 @@ export const EmailTriggerNode = (props: NodeProps) => {
                 open={dialogOpen} 
                 onOpenChange={setDialogOpen}
                 onSubmit={handleSubmit}
-                defaultSenderEmail={nodeData?.senderEmail}
-                defaultSubjectFilter={nodeData?.subjectFilter}
-                defaultEnabled={nodeData?.enabled}
+                defaultSenderEmail={nodeData?.senderEmail as string | undefined}
+                defaultSubjectFilter={nodeData?.subjectFilter as string | undefined}
+                defaultEnabled={nodeData?.enabled as boolean | undefined}
             />
             <BaseTriggerNode
                 {...props}

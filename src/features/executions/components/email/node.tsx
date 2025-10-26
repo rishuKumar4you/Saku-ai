@@ -7,7 +7,6 @@ import { BaseExecutionNode } from "../base-execution-node";
 import { FormType, EmailDialog } from "@/features/executions/components/email/dialog";
 
 type EmailNodeData = {
-    senderEmail?: string;
     receiverEmail?: string;
     subject?: string;
     content?: string;
@@ -32,7 +31,6 @@ export const EmailNode = memo((
                     ...node,
                     data: {
                         ...node.data,
-                        senderEmail: values.senderEmail,
                         receiverEmail: values.receiverEmail,
                         subject: values.subject,
                         content: values.content,
@@ -59,7 +57,7 @@ export const EmailNode = memo((
                 open={dialogOpen}
                 onOpenChange={setDialogOpen}
                 onSubmit={handleSubmit}
-                defaultSenderEmail={nodeData.senderEmail}
+                nodeId={props.id}
                 defaultReceiverEmail={nodeData.receiverEmail}
                 defaultSubject={nodeData.subject}
                 defaultContent={nodeData.content}
