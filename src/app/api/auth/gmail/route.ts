@@ -14,20 +14,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({error: 'Unauthorized'}, {status: 401});
     }
 
+    // Get base URL once for the entire function
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
     const {searchParams} = new URL(request.url);
     const code = searchParams.get('code');
     const error = searchParams.get('error');
 
     if (error) {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
       return NextResponse.redirect(`${baseUrl}/credentials?error=${encodeURIComponent(error)}`);
     }
 
     if (!code) {
       // Initiate OAuth flow
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
       const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
       authUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID!);
       authUrl.searchParams.set('redirect_uri', `${baseUrl}/api/auth/gmail`);
@@ -95,14 +95,10 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
     return NextResponse.redirect(`${baseUrl}/credentials?success=gmail_connected`);
 
   } catch (error) {
     console.error('Gmail OAuth error:', error);
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
     return NextResponse.redirect(`${baseUrl}/credentials?error=oauth_failed`);
   }
 }
