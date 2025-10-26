@@ -16,16 +16,17 @@ datasource db {
 }
 
 model User {
-  id            String     @id
+  id            String       @id
   name          String
   email         String
-  emailVerified Boolean    @default(false)
+  emailVerified Boolean      @default(false)
   image         String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @default(now()) @updatedAt
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @default(now()) @updatedAt
   sessions      Session[]
   accounts      Account[]
   workflows     Workflow[]
+  credentials   Credential[]
 
   @@unique([email])
   @@map("user")
@@ -76,6 +77,32 @@ model Verification {
   @@map("verification")
 }
 
+enum CredentialType {
+  OPENAI_API_KEY
+  GEMINI_API_KEY
+  ANTHROPIC_API_KEY
+  GMAIL_OAUTH
+}
+
+model Credential {
+  id           String         @id @default(cuid())
+  userId       String
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type         CredentialType
+  name         String // Display name for the credential
+  apiKey       String? // For API key credentials
+  accessToken  String? // For OAuth credentials
+  refreshToken String? // For OAuth credentials
+  expiresAt    DateTime? // For OAuth token expiration
+  scope        String? // OAuth scopes
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@unique([userId, type])
+  @@map("credential")
+}
+
 model Workflow {
   id          String       @id @default(cuid())
   name        String
@@ -94,6 +121,9 @@ enum NodeType {
   AI_OPENAI
   AI_GEMINI
   AI_ANTHROPIC
+  EMAIL
+  EMAIL_TRIGGER
+  SCHEDULE_TRIGGER
 }
 
 model Node {

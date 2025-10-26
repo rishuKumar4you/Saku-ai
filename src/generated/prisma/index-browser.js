@@ -166,6 +166,21 @@ exports.Prisma.VerificationScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.CredentialScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  type: 'type',
+  name: 'name',
+  apiKey: 'apiKey',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  expiresAt: 'expiresAt',
+  scope: 'scope',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.WorkflowScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -220,13 +235,23 @@ exports.Prisma.JsonNullValueFilter = {
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull
 };
+exports.CredentialType = exports.$Enums.CredentialType = {
+  OPENAI_API_KEY: 'OPENAI_API_KEY',
+  GEMINI_API_KEY: 'GEMINI_API_KEY',
+  ANTHROPIC_API_KEY: 'ANTHROPIC_API_KEY',
+  GMAIL_OAUTH: 'GMAIL_OAUTH'
+};
+
 exports.NodeType = exports.$Enums.NodeType = {
   INITIAL: 'INITIAL',
   MANUAL_TRIGGER: 'MANUAL_TRIGGER',
   HTTP_REQUEST: 'HTTP_REQUEST',
   AI_OPENAI: 'AI_OPENAI',
   AI_GEMINI: 'AI_GEMINI',
-  AI_ANTHROPIC: 'AI_ANTHROPIC'
+  AI_ANTHROPIC: 'AI_ANTHROPIC',
+  EMAIL: 'EMAIL',
+  EMAIL_TRIGGER: 'EMAIL_TRIGGER',
+  SCHEDULE_TRIGGER: 'SCHEDULE_TRIGGER'
 };
 
 exports.Prisma.ModelName = {
@@ -234,6 +259,7 @@ exports.Prisma.ModelName = {
   Session: 'Session',
   Account: 'Account',
   Verification: 'Verification',
+  Credential: 'Credential',
   Workflow: 'Workflow',
   Node: 'Node',
   Connection: 'Connection'

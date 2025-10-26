@@ -87,14 +87,14 @@ export function createAIErrorResponse(error: string): AIResponse {
 
 // Standardized success response
 export function createAISuccessResponse(
-    content: string, function: AIFunction, model: string,
+    content: string, aiFunction: AIFunction, model: string,
     metadata: Partial<AIResponse['data']['metadata']> = {},
     sentiment?: AIResponse['data']['sentiment']): AIResponse {
   return {
     success: true,
     data: {
       content,
-      function,
+      function: aiFunction,
       model,
       metadata: {
         timestamp: new Date().toISOString(),

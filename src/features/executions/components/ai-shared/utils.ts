@@ -79,14 +79,14 @@ Make sure the response is valid JSON.`;
 
 // Parse AI response and extract structured data
 function parseAIResponse(
-    response: string, function: AINodeData['function']): AIResponse['data'] {
+    response: string, aiFunction: AINodeData['function']): AIResponse['data'] {
   try {
     const parsed = JSON.parse(response);
 
-    if (function === 'sentiment_analysis') {
+    if (aiFunction === 'sentiment_analysis') {
       return {
         content: parsed.content || response,
-        function,
+        function: aiFunction,
         model: '',  // Will be set by caller
         metadata: {
           timestamp: new Date().toISOString(),
@@ -100,7 +100,7 @@ function parseAIResponse(
     } else {
       return {
         content: parsed.content || response,
-        function,
+        function: aiFunction,
         model: '',  // Will be set by caller
         metadata: {
           timestamp: new Date().toISOString(),
@@ -111,7 +111,7 @@ function parseAIResponse(
     // If JSON parsing fails, treat as plain text
     return {
       content: response,
-      function,
+      function: aiFunction,
       model: '',  // Will be set by caller
       metadata: {
         timestamp: new Date().toISOString(),

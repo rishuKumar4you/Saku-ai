@@ -110,9 +110,18 @@ export const workflowsRouter = createTRPCRouter({
                   case 'AI_ANTHROPIC':
                     nodeType = NodeType.AI_ANTHROPIC;
                     break;
+                  case 'EMAIL':
+                    nodeType = NodeType.EMAIL;
+                    break;
+                  case 'EMAIL_TRIGGER':
+                    nodeType = NodeType.EMAIL_TRIGGER;
+                    break;
+                  case 'SCHEDULE_TRIGGER':
+                    nodeType = NodeType.SCHEDULE_TRIGGER;
+                    break;
                   default:
                     throw new Error(`Invalid node type: "${
-                        node.type}". Valid types: INITIAL, MANUAL_TRIGGER, HTTP_REQUEST, AI_OPENAI, AI_GEMINI, AI_ANTHROPIC`);
+                        node.type}". Valid types: INITIAL, MANUAL_TRIGGER, HTTP_REQUEST, AI_OPENAI, AI_GEMINI, AI_ANTHROPIC, EMAIL, EMAIL_TRIGGER, SCHEDULE_TRIGGER`);
                 }
 
                 return {
