@@ -5,6 +5,10 @@ import {headers} from 'next/headers';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function GET(request: NextRequest) {
+  // Get base URL once for the entire function - outside try-catch so it's accessible everywhere
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -13,10 +17,6 @@ export async function GET(request: NextRequest) {
     if (!session) {
       return NextResponse.json({error: 'Unauthorized'}, {status: 401});
     }
-
-    // Get base URL once for the entire function
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
     const {searchParams} = new URL(request.url);
     const code = searchParams.get('code');
