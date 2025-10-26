@@ -19,21 +19,18 @@ export async function GET(request: NextRequest) {
     const error = searchParams.get('error');
 
     if (error) {
-      return NextResponse.redirect(`${
-          process.env.NEXT_PUBLIC_APP_URL ||
-          'http://localhost:3000'}/credentials?error=${
-          encodeURIComponent(error)}`);
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+      return NextResponse.redirect(`${baseUrl}/credentials?error=${encodeURIComponent(error)}`);
     }
 
     if (!code) {
       // Initiate OAuth flow
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
       const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
       authUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID!);
-      authUrl.searchParams.set(
-          'redirect_uri',
-          `${
-              process.env.NEXT_PUBLIC_APP_URL ||
-              'http://localhost:3000'}/api/auth/gmail`);
+      authUrl.searchParams.set('redirect_uri', `${baseUrl}/api/auth/gmail`);
       authUrl.searchParams.set('response_type', 'code');
       authUrl.searchParams.set(
           'scope',
@@ -56,9 +53,7 @@ export async function GET(request: NextRequest) {
         client_secret: process.env.GOOGLE_CLIENT_SECRET!,
         code,
         grant_type: 'authorization_code',
-        redirect_uri: `${
-            process.env.NEXT_PUBLIC_APP_URL ||
-            'http://localhost:3000'}/api/auth/gmail`,
+        redirect_uri: `${baseUrl}/api/auth/gmail`,
       }),
     });
 
@@ -100,14 +95,14 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.redirect(`${
-        process.env.NEXT_PUBLIC_APP_URL ||
-        'http://localhost:3000'}/credentials?success=gmail_connected`);
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    return NextResponse.redirect(`${baseUrl}/credentials?success=gmail_connected`);
 
   } catch (error) {
     console.error('Gmail OAuth error:', error);
-    return NextResponse.redirect(`${
-        process.env.NEXT_PUBLIC_APP_URL ||
-        'http://localhost:3000'}/credentials?error=oauth_failed`);
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    return NextResponse.redirect(`${baseUrl}/credentials?error=oauth_failed`);
   }
 }
