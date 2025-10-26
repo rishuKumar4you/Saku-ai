@@ -68,7 +68,7 @@ export function RegisterForm(){
                 {
                     onSuccess: () => {
                         toast.success("Account created successfully!");
-                        router.push("/");
+                        router.push("/onboarding/features");
                     },
                     onError: (ctx) => {
                         toast.error(ctx.error.message);

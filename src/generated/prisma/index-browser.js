@@ -126,6 +126,7 @@ exports.Prisma.UserScalarFieldEnum = {
   email: 'email',
   emailVerified: 'emailVerified',
   image: 'image',
+  onboardingCompleted: 'onboardingCompleted',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -257,7 +258,9 @@ exports.CredentialType = exports.$Enums.CredentialType = {
   OPENAI_API_KEY: 'OPENAI_API_KEY',
   GEMINI_API_KEY: 'GEMINI_API_KEY',
   ANTHROPIC_API_KEY: 'ANTHROPIC_API_KEY',
-  GMAIL_OAUTH: 'GMAIL_OAUTH'
+  GMAIL_OAUTH: 'GMAIL_OAUTH',
+  GOOGLE_DRIVE_OAUTH: 'GOOGLE_DRIVE_OAUTH',
+  GOOGLE_CALENDAR_OAUTH: 'GOOGLE_CALENDAR_OAUTH'
 };
 
 exports.NodeType = exports.$Enums.NodeType = {

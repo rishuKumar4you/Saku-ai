@@ -112,14 +112,14 @@ export const GeminiDialog = ({
                     <DialogDescription>
                         Configure settings for the Google Gemini AI processing node.
                         {nodeId && (
-                            <div className="mt-2 p-2 bg-muted rounded-md">
-                                <p className="text-sm font-mono">
+                            <span className="block mt-2 p-2 bg-muted rounded-md">
+                                <span className="block text-sm font-mono">
                                     <span className="font-medium">Node ID:</span> {nodeId}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    Use this ID in email templates: {`{{${nodeId}.content}}`}
-                                </p>
-                            </div>
+                                </span>
+                                <span className="block text-xs text-muted-foreground mt-1">
+                                    Use this ID in prompts: {`{{${nodeId}.content}}`}
+                                </span>
+                            </span>
                         )}
                     </DialogDescription>
                 </DialogHeader>

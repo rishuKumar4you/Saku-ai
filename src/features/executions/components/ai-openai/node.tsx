@@ -40,7 +40,7 @@ export const OpenAINode = memo((
 
     const nodeData = props.data;
     const description = nodeData?.function && nodeData?.prompt
-        ? `${nodeData.function.replace('_', ' ')} (${nodeData.model || 'gpt-4o'}): ${nodeData.prompt.substring(0, 40)}${nodeData.prompt.length > 40 ? '...' : ''}`
+        ? `${nodeData.function.replace('_', ' ')} (${nodeData.model || 'gpt-4'}): ${nodeData.prompt.substring(0, 40)}${nodeData.prompt.length > 40 ? '...' : ''}`
         : "Not configured";
     
     return (

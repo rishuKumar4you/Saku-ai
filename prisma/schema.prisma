@@ -16,17 +16,18 @@ datasource db {
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  workflows     Workflow[]
-  credentials   Credential[]
+  id                  String    @id
+  name                String
+  email               String
+  emailVerified       Boolean   @default(false)
+  image               String?
+  onboardingCompleted Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @default(now()) @updatedAt
+  sessions            Session[]
+  accounts            Account[]
+  workflows           Workflow[]
+  credentials         Credential[]
 
   @@unique([email])
   @@map("user")
@@ -82,6 +83,8 @@ enum CredentialType {
   GEMINI_API_KEY
   ANTHROPIC_API_KEY
   GMAIL_OAUTH
+  GOOGLE_DRIVE_OAUTH
+  GOOGLE_CALENDAR_OAUTH
 }
 
 model Credential {

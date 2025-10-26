@@ -68,11 +68,14 @@ export const EmailNode = memo((
                 {...props}
                 id={props.id}
                 icon={MailIcon}
-                name="Email"
+                name="Send Email"
+                subtitle="Email Action"
+                description="Sends an email to the specified recipient."
                 status={nodeStatus}
-                description={description}
                 onSettings={handleOpenSettings}
                 onDoubleClick={handleOpenSettings}
+                nodeType="email"
+                tag="Email"
             />
         </>
     )

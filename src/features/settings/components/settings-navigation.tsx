@@ -11,6 +11,10 @@ const settingsItems = [
         href: "/settings/profile",
     },
     {
+        title: "Credentials",
+        href: "/settings/credentials",
+    },
+    {
         title: "Integrations",
         href: "/settings/integrations",
     },

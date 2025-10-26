@@ -64,10 +64,13 @@ export const HttpRequestNode = memo((
                 id={props.id}
                 icon={GlobeIcon}
                 name="HTTP Request"
+                subtitle="API Call"
+                description="Makes HTTP requests to external APIs"
                 status={nodeStatus}
-                description={description}
                 onSettings={handleOpenSettings}
                 onDoubleClick={handleOpenSettings}
+                nodeType="http"
+                tag="HTTP"
             />
         </>
     )

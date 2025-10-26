@@ -19,42 +19,8 @@ import { editorAtom } from "../store/atoms";
 import { ExecuteWorkflowButton } from "./execute-workflow-button";
 
 export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
-    
-    const editor = useAtomValue(editorAtom);
-    const saveWorkflow = useUpdateWorkflow();
-
-    const handleSave = () => {
-        if (!editor) {
-            return;
-        }
-    
-
-        const nodes = editor.getNodes();
-        const edges = editor.getEdges();
-
-        // Transform nodes to match the expected type
-        const transformedNodes = nodes.map(node => ({
-            id: node.id,
-            type: node.type || 'UNKNOWN',
-            position: node.position,
-            data: node.data || {},
-        }));
-
-        saveWorkflow.mutate({
-            id: workflowId,
-            nodes: transformedNodes,
-            edges,
-        });
-    }
-    return (
-        <div className="ml-auto flex gap-2">
-            <ExecuteWorkflowButton workflowId={workflowId} />
-            <Button size="sm" onClick={handleSave} disabled={saveWorkflow.isPending}>
-                <SaveIcon className="size-4" />
-                Save 
-            </Button>
-        </div>
-    )
+    // This component is now empty since buttons moved to bottom bar
+    return null;
 };
 
 export const EditorNameInput = ({ workflowId }: { workflowId: string }) => {

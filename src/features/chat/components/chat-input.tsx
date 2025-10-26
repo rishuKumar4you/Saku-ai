@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { 
     DropdownMenu,
     DropdownMenuContent,
@@ -38,21 +37,22 @@ export const ChatInput = ({ onSendMessage, onSourcesChange }: ChatInputProps) =>
         }
     };
 
-    const handleKeyPress = (e: React.KeyboardEvent) => {
+    const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             handleSend();
         }
+        // Allow Shift+Enter for new lines (default behavior)
     };
 
     return (
-        <div className="border-t bg-background p-3 sm:p-4 sticky bottom-0">
-            <div className="max-w-4xl mx-auto space-y-3 sm:space-y-4">
+        <div className="border-t bg-background px-2 py-1 sticky bottom-0">
+            <div className="max-w-4xl mx-auto space-y-1">
                 {/* Top controls */}
-                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <div className="flex flex-wrap items-center gap-1">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="gap-2">
+                            <Button variant="outline" size="sm" className="gap-2 rounded-xl">
                                 <Zap className="h-4 w-4" />
                                 {selectedModel}
                                 <ChevronDown className="h-4 w-4" />
@@ -76,7 +76,7 @@ export const ChatInput = ({ onSendMessage, onSourcesChange }: ChatInputProps) =>
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="gap-2">
+                            <Button variant="outline" size="sm" className="gap-2 rounded-xl">
                                 <Network className="h-4 w-4" />
                                 {sources.emails || sources.calendar || sources.files || sources.drive ? `Sources: ${[
                                     sources.emails ? 'Gmail' : null,
@@ -133,7 +133,7 @@ export const ChatInput = ({ onSendMessage, onSourcesChange }: ChatInputProps) =>
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="gap-2">
+                            <Button variant="outline" size="sm" className="gap-2 rounded-xl">
                                 <Lock className="h-4 w-4" />
                                 All Access
                                 <ChevronDown className="h-4 w-4" />
@@ -148,18 +148,19 @@ export const ChatInput = ({ onSendMessage, onSourcesChange }: ChatInputProps) =>
                 </div>
 
                 {/* Input area */}
-                <div className="flex items-end gap-2 sm:gap-3">
+                <div className="flex items-end gap-1 sm:gap-2">
                     <div className="flex-1">
-                        <Input
+                        <textarea
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
-                            onKeyPress={handleKeyPress}
+                            onKeyDown={handleKeyDown}
                             placeholder="Find all unread emails from yesterday and summarize"
-                            className="min-h-[44px] resize-none"
+                            className="min-h-[44px] resize-none rounded-xl w-full px-3 py-2 border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            rows={1}
                         />
                     </div>
                     
-                    <div className="flex items-center gap-1 sm:gap-2">
+                    <div className="flex items-center gap-1">
                         <input id={fileInputId} type="file" accept=".pdf,.txt,.md,.doc,.docx" className="hidden" onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
@@ -180,22 +181,22 @@ export const ChatInput = ({ onSendMessage, onSourcesChange }: ChatInputProps) =>
                             // Reset input so the same file can be chosen again later
                             (e.target as HTMLInputElement).value = "";
                         }} />
-                        <Button size="sm" variant="ghost" className="h-9 w-9 p-0">
+                        <Button size="sm" variant="ghost" className="h-9 w-9 p-0 rounded-full">
                             <Image className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" className="h-9 w-9 p-0" onClick={() => {
+                        <Button size="sm" variant="ghost" className="h-9 w-9 p-0 rounded-full" onClick={() => {
                             const el = document.getElementById(fileInputId) as HTMLInputElement | null;
                             el?.click();
                         }}>
                             <Paperclip className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" className="h-9 w-9 p-0">
+                        <Button size="sm" variant="ghost" className="h-9 w-9 p-0 rounded-full">
                             <Mic className="h-4 w-4" />
                         </Button>
                         <Button 
                             onClick={handleSend}
                             size="sm" 
-                            className="h-9 w-9 p-0 bg-primary hover:bg-primary/90"
+                            className="h-9 w-9 p-0 bg-primary hover:bg-primary/90 rounded-full"
                             disabled={!message.trim()}
                         >
                             <Send className="h-4 w-4" />

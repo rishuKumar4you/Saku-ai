@@ -4,11 +4,7 @@ import { TagsInterface } from "@/features/settings/components/tags-interface";
 const Page = async () => {
     await requireAuth();
     
-    return (
-        <div className="p-8">
-            <TagsInterface />
-        </div>
-    );
+    return <TagsInterface />;
 };
 
 export default Page;

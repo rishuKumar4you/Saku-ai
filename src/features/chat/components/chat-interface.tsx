@@ -3,7 +3,6 @@
 // @ts-ignore react types are available at build time
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ChatHeader } from "./chat-header";
 import { ChatMessages } from "./chat-messages";
 import { ChatInput } from "./chat-input";
 import { WelcomeSection } from "./welcome-section";
@@ -245,7 +244,6 @@ export const ChatInterface = () => {
 
     return (
         <div className="flex flex-col h-full bg-background">
-            <ChatHeader />
             <div className="flex-1 overflow-hidden">
                 {sources.emails && gmailCards.length > 0 && (
                     <div className="px-3 sm:px-6 py-3 space-y-3 max-w-4xl mx-auto">

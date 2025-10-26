@@ -1,13 +1,14 @@
 "use client";
 
-import { NodeProps } from "@xyflow/react";
+import { NodeProps, useReactFlow } from "@xyflow/react";
 import { MailIcon } from "lucide-react";
 import { BaseTriggerNode } from "../base-trigger-node";
 import { memo, useState } from "react";
 import { EmailTriggerDialog } from "./dialog";
 
-export const EmailTriggerNode = (props: NodeProps) => {
+export const EmailTriggerNode = memo((props: NodeProps) => {
     const [dialogOpen, setDialogOpen] = useState(false);
+    const { setNodes } = useReactFlow();
 
     const nodeStatus = "initial";
     const handleOpenSettings = () => setDialogOpen(true);
@@ -16,6 +17,24 @@ export const EmailTriggerNode = (props: NodeProps) => {
     const description = nodeData?.senderEmail 
         ? `Triggers on emails from: ${nodeData.senderEmail}`
         : "Triggers on any new email";
+
+    const handleSubmit = (values: { senderEmail?: string; subjectFilter?: string; enabled?: boolean }) => {
+        setNodes((nodes) => nodes.map((node) => {
+            if (node.id === props.id) {
+                return {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        senderEmail: values.senderEmail,
+                        subjectFilter: values.subjectFilter,
+                        enabled: values.enabled ?? true,
+                    }
+                }
+            }
+            return node;
+        }));
+        setDialogOpen(false);
+    };
 
     return (
         <>
@@ -30,18 +49,16 @@ export const EmailTriggerNode = (props: NodeProps) => {
             <BaseTriggerNode
                 {...props}
                 icon={MailIcon}
-                name="Email Trigger"
+                name="New Email"
+                subtitle="Gmail Trigger"
                 description={description}
                 status={nodeStatus} 
                 onSettings={handleOpenSettings} 
-                onDoubleClick={handleOpenSettings} 
+                onDoubleClick={handleOpenSettings}
+                tag="Gmail"
             />
         </>
     );
+});
 
-    function handleSubmit(values: { senderEmail?: string; subjectFilter?: string; enabled?: boolean }) {
-        // Update node data with form values
-        // This will be handled by the parent component or workflow state
-        setDialogOpen(false);
-    }
-};
+EmailTriggerNode.displayName = "EmailTriggerNode";

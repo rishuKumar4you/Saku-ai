@@ -8,20 +8,27 @@ import {
     BrainIcon,
     MailIcon,
     ClockIcon,
+    XIcon,
+    SearchIcon,
+    DatabaseIcon,
+    MessageSquareIcon,
+    SendIcon,
+    ZapIcon,
+    FileTextIcon,
+    BarChartIcon,
 } from "lucide-react";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import {
     Sheet,
     SheetContent,
-    SheetDescription,
     SheetHeader,
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet";
 import { NodeType } from "@/generated/prisma";
-import { Separator } from "./ui/separator";
+import { Input } from "./ui/input";
 
 export type NodeTypeOption = {
     type: NodeType;
@@ -33,42 +40,30 @@ export type NodeTypeOption = {
 
 const triggerNodes: NodeTypeOption[] = [
     {
-        type: NodeType.MANUAL_TRIGGER,
-        label: "Trigger manually",
-        description: "Runs the flow on clicking a button. Good for getting started quickly.",
-        icon: MousePointerIcon,
-    },
-    {
         type: NodeType.EMAIL_TRIGGER,
         label: "Email Trigger",
-        description: "Triggers when a new email is received via Google Gmail.",
+        description: "Gmail, Outlook",
         icon: MailIcon,
     },
     {
+        type: NodeType.HTTP_REQUEST,
+        label: "Webhook",
+        description: "Receive HTTP requests",
+        icon: GlobeIcon,
+    },
+    {
         type: NodeType.SCHEDULE_TRIGGER,
-        label: "Schedule Trigger",
-        description: "Triggers at regular time intervals (seconds, minutes, hours).",
+        label: "Schedule",
+        description: "Time-based triggers",
         icon: ClockIcon,
     },
 ];
 
-const executionNodes: NodeTypeOption[] = [
-    {
-        type: NodeType.HTTP_REQUEST,
-        label: "HTTP Request",
-        description: "Makes an HTTP request",
-        icon: GlobeIcon,
-    },
+const aiProcessingNodes: NodeTypeOption[] = [
     {
         type: NodeType.AI_OPENAI,
         label: "OpenAI",
         description: "AI processing with OpenAI models",
-        icon: BrainIcon,
-    },
-    {
-        type: NodeType.AI_GEMINI,
-        label: "Gemini",
-        description: "AI processing with Google Gemini models",
         icon: BrainIcon,
     },
     {
@@ -78,10 +73,31 @@ const executionNodes: NodeTypeOption[] = [
         icon: BrainIcon,
     },
     {
+        type: NodeType.AI_GEMINI,
+        label: "Gemini",
+        description: "AI processing with Google Gemini models",
+        icon: BrainIcon,
+    },
+];
+
+const outputNodes: NodeTypeOption[] = [
+    {
+        type: NodeType.HTTP_REQUEST,
+        label: "Slack Message",
+        description: "Post to channel",
+        icon: MessageSquareIcon,
+    },
+    {
         type: NodeType.EMAIL,
-        label: "Email",
-        description: "Send emails via Google SMTP",
-        icon: MailIcon,
+        label: "Send Email",
+        description: "Send notifications",
+        icon: SendIcon,
+    },
+    {
+        type: NodeType.MANUAL_TRIGGER,
+        label: "Update Database",
+        description: "Store data",
+        icon: DatabaseIcon,
     },
 ];
 
@@ -96,11 +112,19 @@ export function NodeSelector({
     onOpenChange,
     children
 }: NodeSelectorProps) {
-
+    const [searchQuery, setSearchQuery] = useState("");
     const { setNodes, getNodes, screenToFlowPosition } = useReactFlow();
     
+    // Combine all nodes for search
+    const allNodes = [...triggerNodes, ...aiProcessingNodes, ...outputNodes];
+    
+    // Filter nodes based on search query
+    const filteredNodes = allNodes.filter(node => 
+        node.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        node.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    
     const handleNodeSelect = useCallback((nodeType: NodeTypeOption) => {
-
         // you should not be able to add two manual triggers.
         if (nodeType.type === NodeType.MANUAL_TRIGGER) {
             const nodes = getNodes();
@@ -142,98 +166,110 @@ export function NodeSelector({
         onOpenChange(false);
     }, [setNodes, getNodes, onOpenChange, screenToFlowPosition]);
     
-    return (
+    const renderNodeSection = (title: string, nodes: NodeTypeOption[]) => {
+        const sectionNodes = nodes.filter(node => 
+            filteredNodes.includes(node)
+        );
+        
+        if (sectionNodes.length === 0) return null;
+        
+        return (
+            <div key={title} className="mb-6">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">{title}</h3>
+                <div className="space-y-1">
+                    {sectionNodes.map((nodeType) => {
+                        const Icon = nodeType.icon;
+                        const iconColor = getIconColor(nodeType.type);
 
+                        return (
+                            <div
+                                key={nodeType.type}
+                                className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                                onClick={() => handleNodeSelect(nodeType)}
+                            >
+                                <div className={`w-8 h-8 rounded-md flex items-center justify-center ${iconColor}`}>
+                                    {typeof Icon === "string" ? (
+                                        <img
+                                            src={Icon}
+                                            alt={nodeType.label}
+                                            className="w-5 h-5 object-contain"
+                                        />
+                                    ) : (
+                                        <Icon className="w-5 h-5 text-white" />
+                                    )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-medium text-gray-900">
+                                        {nodeType.label}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                        {nodeType.description}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+    const getIconColor = (nodeType: NodeType) => {
+        switch (nodeType) {
+            case NodeType.EMAIL_TRIGGER:
+            case NodeType.EMAIL:
+                return "bg-green-500";
+            case NodeType.HTTP_REQUEST:
+                return "bg-orange-500";
+            case NodeType.SCHEDULE_TRIGGER:
+                return "bg-yellow-500";
+            case NodeType.AI_OPENAI:
+            case NodeType.AI_ANTHROPIC:
+            case NodeType.AI_GEMINI:
+                return "bg-purple-500";
+            case NodeType.MANUAL_TRIGGER:
+                return "bg-red-500";
+            default:
+                return "bg-blue-500";
+        }
+    };
+
+    return (
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetTrigger asChild>
                 {children}
             </SheetTrigger>
-            <SheetContent side="right" className="w-full sm:max-w-md
-            overflow-y-auto">
-                <SheetHeader>
-                    <SheetTitle>
-                        What trigger this workflow?
-                    </SheetTitle>
-                    <SheetDescription>
-                        A trigger is a step that starts your workflow.
-                    </SheetDescription>
+            <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto p-0">
+                <SheetHeader className="p-6 pb-0">
+                    <SheetTitle className="text-lg font-semibold text-gray-900">Components</SheetTitle>
                 </SheetHeader>
-                <div>
-                    {triggerNodes.map((nodeType) => {
-                        const Icon = nodeType.icon;
+                <div className="p-6 pt-4">
 
-                        return (
-                            <div
-                                key={nodeType.type}
-                                className="w-full justify-start
-                                h-auto py-5 px-4 rounded-none cursor-pointer border-l-2 
-                                border-transparent hover:border-l-primary"
-                                onClick={() => handleNodeSelect(nodeType)}
-                            >
-                                <div className="flex items-center gap-6 w-full 
-                                overflow-hidden">
-                                    {typeof Icon == "string" ? (
-                                        <img
-                                            src={Icon}
-                                            alt={nodeType.label}
-                                            className="size-5 object-contain rounded-sm"
-                                        />
-                                    ) : (
-                                            <Icon className="size-5"/>
-                                    )}
+                    {/* Search Bar */}
+                    <div className="relative mb-6">
+                        <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input
+                            type="text"
+                            placeholder="Search components..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10 bg-gray-50 border-gray-200 focus:bg-white"
+                        />
+                    </div>
 
-                                
-                                    <div className="flex flex-col items-start text-left">
-                                        <span className="text-sm font-medium">
-                                            {nodeType.label}
-                                        </span>
-                                        <span className="text-xs text-muted-foreground mt-1">
-                                            {nodeType.description}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        )
-                    })}
-                </div>
-            <Separator/>       
-                <div>
-                    {executionNodes.map((nodeType) => {
-                        const Icon = nodeType.icon;
+                    {/* Node Sections */}
+                    <div className="space-y-6">
+                        {renderNodeSection("TRIGGERS", triggerNodes)}
+                        {renderNodeSection("AI PROCESSING", aiProcessingNodes)}
+                        {renderNodeSection("OUTPUTS", outputNodes)}
+                    </div>
 
-                        return (
-                            <div
-                                key={nodeType.type}
-                                className="w-full justify-start
-                                h-auto py-5 px-4 rounded-none cursor-pointer border-l-2 
-                                border-transparent hover:border-l-primary"
-                                onClick={() =>  handleNodeSelect(nodeType)}
-                            >
-                                <div className="flex items-center gap-6 w-full 
-                                overflow-hidden">
-                                    {typeof Icon == "string" ? (
-                                        <img
-                                            src={Icon}
-                                            alt={nodeType.label}
-                                            className="size-5 object-contain rounded-sm"
-                                        />
-                                    ) : (
-                                            <Icon className="size-5"/>
-                                    )}
-
-                                
-                                    <div className="flex flex-col items-start text-left">
-                                        <span className="text-sm font-medium">
-                                            {nodeType.label}
-                                        </span>
-                                        <span className="text-xs text-muted-foreground mt-1">
-                                            {nodeType.description}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        )
-                    })}
+                    {/* No results message */}
+                    {filteredNodes.length === 0 && searchQuery && (
+                        <div className="text-center py-8 text-gray-500">
+                            No components found matching "{searchQuery}"
+                        </div>
+                    )}
                 </div>
             </SheetContent>
         </Sheet>

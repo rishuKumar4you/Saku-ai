@@ -235,6 +235,13 @@ export const workflowsRouter = createTRPCRouter({
                          mode: 'insensitive',
                        },
                      },
+                     include: {
+                       nodes: {
+                         select: {
+                           type: true,
+                         },
+                       },
+                     },
                      orderBy: {
                        updatedAt: 'desc',
                      },

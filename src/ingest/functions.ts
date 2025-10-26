@@ -247,6 +247,33 @@ async function executeNode(
         data: {message: 'Manual trigger activated'},
       };
 
+    case 'EMAIL_TRIGGER':
+      return {
+        type: 'trigger',
+        status: 'completed',
+        data: {
+          message: 'Email trigger activated',
+          content: nodeData.senderEmail ?
+              `Email from: ${nodeData.senderEmail}` :
+              'New email received',
+          senderEmail: nodeData.senderEmail,
+          subjectFilter: nodeData.subjectFilter,
+          enabled: nodeData.enabled,
+        },
+      };
+
+    case 'SCHEDULE_TRIGGER':
+      return {
+        type: 'trigger',
+        status: 'completed',
+        data: {
+          message: 'Schedule trigger activated',
+          content: `Scheduled trigger executed at ${new Date().toISOString()}`,
+          schedule: nodeData.schedule,
+          enabled: nodeData.enabled,
+        },
+      };
+
     case 'AI_OPENAI':
       return await executeAINode(
           nodeData, 'openai', credentials.get('OPENAI_API_KEY'),
@@ -355,18 +382,35 @@ function replaceTemplateVariables(
     return content;
   }
 
+  console.log('Replacing template variables in:', content);
+  console.log(
+      'Available previous results:', Array.from(previousResults.keys()));
+
   // Replace variables like {{nodeId.field}} with actual data
   return content.replace(/\{\{([^}]+)\}\}/g, (match, variable) => {
     const [nodeId, field] = variable.split('.');
 
+    console.log(`Looking for nodeId: ${nodeId}, field: ${field}`);
+
     if (previousResults.has(nodeId)) {
       const nodeResult = previousResults.get(nodeId);
+      console.log(`Found node result for ${nodeId}:`, nodeResult);
+
       if (nodeResult && nodeResult.data && nodeResult.data[field]) {
-        return nodeResult.data[field];
+        const replacement = nodeResult.data[field];
+        console.log(`Replacing ${match} with:`, replacement);
+        return replacement;
+      } else if (nodeResult && nodeResult.data) {
+        console.log(
+            `Field ${field} not found in data. Available fields:`,
+            Object.keys(nodeResult.data));
       }
+    } else {
+      console.log(`Node ${nodeId} not found in previous results`);
     }
 
     // If variable not found, return the original match
+    console.log(`Variable ${match} not found, keeping original`);
     return match;
   });
 }

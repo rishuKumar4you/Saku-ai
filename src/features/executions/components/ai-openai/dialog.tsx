@@ -97,6 +97,15 @@ export const OpenAIDialog = ({
 
     const watchFunction = form.watch("function");
     
+    // Provide better default prompts based on function type
+    const getDefaultPrompt = (functionType: string) => {
+        if (functionType === "sentiment_analysis") {
+            return "Analyze the sentiment of the following text and provide a detailed analysis:\n\n{{nodeId.content}}\n\nPlease provide:\n1. Overall sentiment (positive/negative/neutral)\n2. Confidence score\n3. Key phrases that influenced the sentiment\n4. Brief explanation";
+        } else {
+            return "Generate a comprehensive response based on the following content:\n\n{{nodeId.content}}\n\nPlease provide a well-structured response that addresses the key points and adds valuable insights.";
+        }
+    };
+    
     const handleSubmit = (values: z.infer<typeof formSchema>) => {
         onSubmit(values);
         onOpenChange(false);
@@ -112,14 +121,14 @@ export const OpenAIDialog = ({
                     <DialogDescription>
                         Configure settings for the OpenAI AI processing node.
                         {nodeId && (
-                            <div className="mt-2 p-2 bg-muted rounded-md">
-                                <p className="text-sm font-mono">
+                            <span className="block mt-2 p-2 bg-muted rounded-md">
+                                <span className="block text-sm font-mono">
                                     <span className="font-medium">Node ID:</span> {nodeId}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    Use this ID in email templates: {`{{${nodeId}.content}}`}
-                                </p>
-                            </div>
+                                </span>
+                                <span className="block text-xs text-muted-foreground mt-1">
+                                    Use this ID in prompts: {`{{${nodeId}.content}}`}
+                                </span>
+                            </span>
                         )}
                     </DialogDescription>
                 </DialogHeader>
@@ -200,21 +209,51 @@ export const OpenAIDialog = ({
                                         Prompt
                                     </FormLabel>
                                     <FormControl>
-                                        <Textarea
-                                            placeholder={
-                                                watchFunction === "sentiment_analysis" 
-                                                    ? "Analyze the sentiment of the following text: {{previousNode.content}}"
-                                                    : "Generate content based on: {{previousNode.content}}"
-                                            }
-                                            {...field}
-                                            className="min-h-[120px]"
-                                        />
+                                        <div className="space-y-2">
+                                            <Textarea
+                                                placeholder={
+                                                    watchFunction === "sentiment_analysis" 
+                                                        ? "Analyze the sentiment of the following text: {{nodeId.content}}"
+                                                        : "Generate content based on: {{nodeId.content}}"
+                                                }
+                                                {...field}
+                                                className="min-h-[120px]"
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => {
+                                                    const defaultPrompt = getDefaultPrompt(watchFunction);
+                                                    form.setValue("prompt", defaultPrompt);
+                                                }}
+                                                className="w-full"
+                                            >
+                                                Insert Default Prompt Template
+                                            </Button>
+                                        </div>
                                     </FormControl>
                                     <FormDescription>
                                         {watchFunction === "sentiment_analysis" 
-                                            ? "Prompt for sentiment analysis. Use {{previousNode.content}} to reference content from previous nodes."
-                                            : "Prompt for text generation. Use {{previousNode.content}} to reference content from previous nodes."
+                                            ? (
+                                                <>
+                                                    Prompt for sentiment analysis. Use {"{{nodeId.content}}"} to reference content from previous nodes (replace 'nodeId' with the actual node ID).
+                                                </>
+                                            )
+                                            : (
+                                                <>
+                                                    Prompt for text generation. Use {"{{nodeId.content}}"} to reference content from previous nodes (replace 'nodeId' with the actual node ID).
+                                                </>
+                                            )
                                         }
+                                        <div className="mt-2 p-2 bg-blue-50 rounded-md">
+                                            <p className="text-xs text-blue-700">
+                                                <strong>Template Variables:</strong><br/>
+                                                • {"{{nodeId.content}}"} - Content from a specific node<br/>
+                                                • {"{{nodeId.data}}"} - All data from a specific node<br/>
+                                                • Example: {"{{email_trigger.content}}"} or {"{{manual_trigger.data}}"}
+                                            </p>
+                                        </div>
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>

@@ -4,11 +4,7 @@ import { AdvancedInterface } from "@/features/settings/components/advanced-inter
 const Page = async () => {
     await requireAuth();
     
-    return (
-        <div className="p-8">
-            <AdvancedInterface />
-        </div>
-    );
+    return <AdvancedInterface />;
 };
 
 export default Page;

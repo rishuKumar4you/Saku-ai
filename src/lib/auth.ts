@@ -30,11 +30,18 @@ export const auth = betterAuth({
     createCustomerOnSignUp: true,
     use: [
       checkout({
-        products: [{
-          // productId: 'be70b7be-be9a-4101-be83-73dd38c3cda0', // for vercel
-          productId: process.env.POLAR_PRODUCT_ID as string,
-          slug: 'pro',
-        }],
+        products: [
+          {
+            // productId: 'be70b7be-be9a-4101-be83-73dd38c3cda0', // for vercel
+            productId: process.env.POLAR_PRODUCT_ID as string,
+            slug: 'basic',
+          },
+          {
+            // productId: 'be70b7be-be9a-4101-be83-73dd38c3cda0', // for vercel
+            productId: process.env.POLAR_PRO_PRODUCT_ID as string,
+            slug: 'pro',
+          }
+        ],
         successUrl: process.env.POLAR_SUCCESS_URL,
         authenticatedUsersOnly: true,
 

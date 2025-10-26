@@ -25,10 +25,12 @@ export const ManualTriggerNode = memo((props: NodeProps) => {
                 {...props}
                 icon={MousePointerIcon}
                 name={(nodeData?.name as string) || "Manual Trigger"}
-                description={description}
+                subtitle="Manual Execution"
+                description="Triggers when the workflow is manually executed"
                 status={nodeStatus} 
                 onSettings={handleOpenSettings} 
-                onDoubleClick={handleOpenSettings} 
+                onDoubleClick={handleOpenSettings}
+                tag="Manual"
             />
         </>
     );

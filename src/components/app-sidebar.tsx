@@ -4,7 +4,6 @@ import {
     CreditCardIcon,
     FolderOpenIcon,
     HistoryIcon,
-    KeyIcon,
     LogOutIcon,
     StarIcon,
     HomeIcon,
@@ -27,11 +26,13 @@ import {
     SidebarMenu,
     SidebarMenuItem,
     SidebarMenuButton,
+    SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 import { authClient } from "@/lib/auth-client";
 import { useHasActiveSubscription } from "@/features/subscriptions/hooks/use-subscriptions";
 import { UserProfile } from "@/components/user-profile";
+import { ChatsDropdown } from "@/features/chat/components/chats-dropdown";
 
 const menuItems = [
     {
@@ -46,11 +47,6 @@ const menuItems = [
                 title: "New Chat",
                 url: "/chat",
                 icon: MessageCircleIcon,
-            },
-            {
-                title: "Chat History",
-                url: "/chat/history",
-                icon: HistoryIcon,
             },
             {
                 title: "Workflows",
@@ -83,11 +79,6 @@ const menuItems = [
         title: "Management",
         items: [
             {
-                title: "Credentials",
-                icon: KeyIcon,
-                url: "/credentials",
-            },
-            {
                 title: "Executions",
                 icon: HistoryIcon,
                 url: "/executions",
@@ -105,16 +96,19 @@ export const AppSidebar = () => {
     const { hasActiveSubscription, isLoading } = useHasActiveSubscription();
 
     return (
-        <Sidebar collapsible="icon">
+        <Sidebar collapsible="icon" variant="floating">
             <SidebarHeader>
                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild className="gap-x-4 h-10 px-4">
-                        <Link href="/" prefetch>
-                            <Image
-                                src="/logos/logo.svg" alt="Saku AI" width={30} height={30} />
-                            <span className="font-semibold text-sm">Saku AI</span>
-                        </Link>
-                    </SidebarMenuButton>
+                    <div className="flex items-center justify-between w-full px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2">
+                        <SidebarMenuButton asChild className="gap-x-4 h-10 px-0 group-data-[collapsible=icon]:hidden">
+                            <Link href="/" prefetch>
+                                <Image
+                                    src="/logos/logo.svg" alt="Saku AI" width={30} height={30} />
+                                <span className="font-semibold text-sm">Saku AI</span>
+                            </Link>
+                        </SidebarMenuButton>
+                        <SidebarTrigger />
+                    </div>
                 </SidebarMenuItem>
             </SidebarHeader>
             <SidebarContent>
@@ -132,11 +126,7 @@ export const AppSidebar = () => {
                                             : pathname.startsWith(item.url)
                                         }
                                         asChild
-                                        className={`gap-x-4 h-10 px-4 ${
-                                            item.title === "New Chat" 
-                                                ? "bg-primary text-primary-foreground hover:bg-primary/90" 
-                                                : ""
-                                        }`}>
+                                        className={`gap-x-4 h-10 px-4`}>
                                     <Link href={item.url} prefetch>
                                         <item.icon className="size-4" />
                                         <span>{item.title}</span>
@@ -148,6 +138,17 @@ export const AppSidebar = () => {
                         </SidebarGroupContent>
                     </SidebarGroup>
                 ))}
+                
+                {/* Chats Dropdown - always visible at the bottom */}
+                <SidebarGroup>
+                    <SidebarGroupContent>
+                        <SidebarMenu>
+                            <SidebarMenuItem>
+                                <ChatsDropdown />
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
             </SidebarContent>
             <SidebarFooter>
                 <SidebarMenu>
@@ -161,7 +162,7 @@ export const AppSidebar = () => {
                             <SidebarMenuButton
                                 tooltip="Upgrade to Pro"
                                 className="gap-x-4 h-10 px-4"
-                                onClick={() => authClient.checkout({ slug: "pro" })}
+                                onClick={() => authClient.checkout({ slug: "basic" })}
                             >
                                 <StarIcon className="h-4 w-4" />
                                 <span>Upgrade to Pro</span>
