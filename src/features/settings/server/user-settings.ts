@@ -127,36 +127,53 @@ export const userSettingsRouter = createTRPCRouter({
               const customersByEmail = await polarClient.customers.list({
                 email: user.email,
               });
-              console.log(`Found ${
-                  customersByEmail.items?.length || 0} customers by email`);
 
-              if (customersByEmail.items && customersByEmail.items.length > 0) {
-                customer = customersByEmail.items[0];
+              let customersByEmailArray = [];
+              for await (const customer of customersByEmail) {
+                customersByEmailArray.push(customer);
+              }
+
+              console.log(
+                  `Found ${customersByEmailArray.length} customers by email`);
+
+              if (customersByEmailArray.length > 0) {
+                customer = customersByEmailArray[0];
               } else {
                 // Approach 2: Search by query (name, email, or external ID)
                 console.log(`Searching for customer by query: ${user.email}`);
                 const customersByQuery = await polarClient.customers.list({
                   query: user.email,
                 });
-                console.log(`Found ${
-                    customersByQuery.items?.length || 0} customers by query`);
 
-                if (customersByQuery.items &&
-                    customersByQuery.items.length > 0) {
-                  customer = customersByQuery.items[0];
+                let customersByQueryArray = [];
+                for await (const customer of customersByQuery) {
+                  customersByQueryArray.push(customer);
+                }
+
+                console.log(
+                    `Found ${customersByQueryArray.length} customers by query`);
+
+                if (customersByQueryArray.length > 0) {
+                  customer = customersByQueryArray[0];
                 } else {
                   // Approach 3: List all customers and search manually
                   console.log(`Listing all customers to find by email`);
                   const allCustomers = await polarClient.customers.list({});
-                  console.log(`Total customers found: ${
-                      allCustomers.items?.length || 0}`);
 
-                  if (allCustomers.items) {
-                    customer =
-                        allCustomers.items.find(c => c.email === user.email);
+                  let allCustomersArray = [];
+                  for await (const customer of allCustomers) {
+                    allCustomersArray.push(customer);
+                  }
+
+                  console.log(
+                      `Total customers found: ${allCustomersArray.length}`);
+
+                  if (allCustomersArray.length > 0) {
+                    customer = allCustomersArray.find(
+                        c => (c as any).email === user.email);
                     if (customer) {
-                      console.log(
-                          `Found customer in full list: ${customer.id}`);
+                      console.log(`Found customer in full list: ${
+                          (customer as any).id}`);
                     }
                   }
                 }
@@ -164,12 +181,12 @@ export const userSettingsRouter = createTRPCRouter({
 
               if (customer) {
                 console.log(`Attempting to delete Polar customer: ${
-                    customer.id} (email: ${customer.email})`);
+                    (customer as any).id} (email: ${(customer as any).email})`);
 
                 // Delete the Polar customer using the correct method
-                await polarClient.customers.delete({id: customer.id});
-                console.log(
-                    `Successfully deleted Polar customer: ${customer.id}`);
+                await polarClient.customers.delete({id: (customer as any).id});
+                console.log(`Successfully deleted Polar customer: ${
+                    (customer as any).id}`);
               } else {
                 console.log(`No Polar customer found for email: ${user.email}`);
                 console.log(
@@ -182,7 +199,7 @@ export const userSettingsRouter = createTRPCRouter({
           message: polarError instanceof Error ? polarError.message :
                                                  'Unknown error',
           stack: polarError instanceof Error ? polarError.stack : undefined,
-          response: polarError?.response || undefined
+          response: (polarError as any)?.response || undefined
         });
         // Continue with account deletion even if Polar deletion fails
       }
