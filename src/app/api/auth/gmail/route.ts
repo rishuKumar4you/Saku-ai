@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const error = searchParams.get('error');
 
     if (error) {
-      return NextResponse.redirect(`${baseUrl}/credentials?error=${encodeURIComponent(error)}`);
+      return NextResponse.redirect(`${baseUrl}/settings/credentials?error=${encodeURIComponent(error)}`);
     }
 
     if (!code) {
@@ -95,10 +95,10 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.redirect(`${baseUrl}/credentials?success=gmail_connected`);
+    return NextResponse.redirect(`${baseUrl}/settings/credentials?success=gmail_connected`);
 
   } catch (error) {
     console.error('Gmail OAuth error:', error);
-    return NextResponse.redirect(`${baseUrl}/credentials?error=oauth_failed`);
+    return NextResponse.redirect(`${baseUrl}/settings/credentials?error=oauth_failed`);
   }
 }
