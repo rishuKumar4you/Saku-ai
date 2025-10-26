@@ -91,6 +91,9 @@ enum NodeType {
   INITIAL
   MANUAL_TRIGGER
   HTTP_REQUEST
+  AI_OPENAI
+  AI_GEMINI
+  AI_ANTHROPIC
 }
 
 model Node {

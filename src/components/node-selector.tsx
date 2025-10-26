@@ -5,6 +5,7 @@ import { useReactFlow } from "@xyflow/react";
 import {
     GlobeIcon,
     MousePointerIcon,
+    BrainIcon,
 } from "lucide-react";
 
 import { useCallback } from "react";
@@ -45,7 +46,24 @@ const executionNodes: NodeTypeOption[] = [
         description: "Makes an HTTP request",
         icon: GlobeIcon,
     },
-
+    {
+        type: NodeType.AI_OPENAI,
+        label: "OpenAI",
+        description: "AI processing with OpenAI models",
+        icon: BrainIcon,
+    },
+    {
+        type: NodeType.AI_GEMINI,
+        label: "Gemini",
+        description: "AI processing with Google Gemini models",
+        icon: BrainIcon,
+    },
+    {
+        type: NodeType.AI_ANTHROPIC,
+        label: "Anthropic",
+        description: "AI processing with Anthropic Claude models",
+        icon: BrainIcon,
+    },
 ];
 
 interface NodeSelectorProps {

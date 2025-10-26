@@ -41,83 +41,114 @@ export const workflowsRouter = createTRPCRouter({
                 });
               }),
 
-  update: protectedProcedure
-              .input(
-                  z.object({
-                    id: z.string(),
-                    nodes: z.array(
-                        z.object({
-                          id: z.string(),
-                          type: z.string().nullish(),
-                          position: z.object({
-                            x: z.number(),
-                            y: z.number(),
-                          }),
-                          data: z.record(z.string(), z.any()).optional(),
+  update:
+      protectedProcedure
+          .input(
+              z.object({
+                id: z.string(),
+                nodes: z.array(
+                    z.object({
+                      id: z.string(),
+                      type: z.string(),
+                      position: z.object({
+                        x: z.number(),
+                        y: z.number(),
+                      }),
+                      data: z.record(z.string(), z.any()).optional(),
 
-                        }),
-                        ),
-                    edges: z.array(
-                        z.object({
-                          id: z.string(),
-                          source: z.string(),
-                          target: z.string(),
-                          sourceHandle: z.string().nullish(),
-                          targetHandle: z.string().nullish(),
-                        }),
-                        ),
-                  }),
-                  )
-              .mutation(async ({ctx, input}) => {
-                const {id, nodes, edges} = input;
-
-                const workflow = await prisma.workflow.findUniqueOrThrow({
-                  where: {id, userId: ctx.auth.user.id},
-
-                });
-
-                // Transaction to ensure consistency
-
-                return await prisma.$transaction(async (tx) => {
-                  // delete all existing nodes and connections
-
-                  await tx.node.deleteMany({
-                    where: {workflowId: id},
-                  });
-
-                  // create nodes
-                  await tx.node.createMany({
-                    data: nodes.map((node) => ({
-                                      id: node.id,
-                                      workflowId: id,
-                                      name: node.type || 'unknown',
-                                      type: node.type as NodeType,
-                                      position: node.position,
-                                      data: node.data || {},
-
-                                    })),
-                  });
-                  // create connections
-                  await tx.connection.createMany({
-                    data: edges.map((edge) => ({
-                                      id: edge.id,
-                                      workflowId: id,
-                                      fromNodeId: edge.source,
-                                      toNodeId: edge.target,
-                                      fromOutput: edge.sourceHandle || 'main',
-                                      toInput: edge.targetHandle || 'main',
-                                    })),
-                  });
-
-                  // update workflow's updateAt timestamp
-                  await tx.workflow.update({
-                    where: {id},
-                    data: {updatedAt: new Date()},
-                  });
-
-                  return workflow;
-                })
+                    }),
+                    ),
+                edges: z.array(
+                    z.object({
+                      id: z.string(),
+                      source: z.string(),
+                      target: z.string(),
+                      sourceHandle: z.string().nullish(),
+                      targetHandle: z.string().nullish(),
+                    }),
+                    ),
               }),
+              )
+          .mutation(async ({ctx, input}) => {
+            const {id, nodes, edges} = input;
+
+            const workflow = await prisma.workflow.findUniqueOrThrow({
+              where: {id, userId: ctx.auth.user.id},
+
+            });
+
+            // Transaction to ensure consistency
+
+            return await prisma.$transaction(async (tx) => {
+              // delete all existing nodes and connections
+
+              await tx.node.deleteMany({
+                where: {workflowId: id},
+              });
+
+              // create nodes
+              const nodeData = nodes.map((node) => {
+                // Map string types to NodeType enum values
+                let nodeType: NodeType;
+
+                switch (node.type) {
+                  case 'INITIAL':
+                    nodeType = NodeType.INITIAL;
+                    break;
+                  case 'MANUAL_TRIGGER':
+                    nodeType = NodeType.MANUAL_TRIGGER;
+                    break;
+                  case 'HTTP_REQUEST':
+                    nodeType = NodeType.HTTP_REQUEST;
+                    break;
+                  case 'AI_OPENAI':
+                    nodeType = NodeType.AI_OPENAI;
+                    break;
+                  case 'AI_GEMINI':
+                    nodeType = NodeType.AI_GEMINI;
+                    break;
+                  case 'AI_ANTHROPIC':
+                    nodeType = NodeType.AI_ANTHROPIC;
+                    break;
+                  default:
+                    throw new Error(`Invalid node type: "${
+                        node.type}". Valid types: INITIAL, MANUAL_TRIGGER, HTTP_REQUEST, AI_OPENAI, AI_GEMINI, AI_ANTHROPIC`);
+                }
+
+                return {
+                  id: node.id,
+                  workflowId: id,
+                  name: node.type || 'unknown',
+                  type: nodeType,
+                  position: node.position,
+                  data: node.data || {},
+                };
+              });
+
+              await tx.node.createMany({
+                data: nodeData,
+              });
+              // create connections
+              await tx.connection.createMany({
+                data: edges.map((edge) => ({
+                                  id: edge.id,
+                                  workflowId: id,
+                                  fromNodeId: edge.source,
+                                  toNodeId: edge.target,
+                                  fromOutput: edge.sourceHandle || 'main',
+                                  toInput: edge.targetHandle || 'main',
+                                })),
+              });
+
+              // update workflow's updateAt timestamp
+              await tx.workflow.update({
+                where: {id},
+                data: {updatedAt: new Date()},
+              });
+
+              return workflow;
+            })
+          }),
 
   updateName: protectedProcedure
                   .input(z.object({id: z.string(), name: z.string().min(1)}))
