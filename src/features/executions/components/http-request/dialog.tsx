@@ -50,6 +50,8 @@ const formSchema = z.object({
     // .refine()   // TODO JSONs 
 });
 
+export type FormType = z.infer<typeof formSchema>;
+
 interface Props {
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -77,6 +79,17 @@ export const HttpRequestDialog = ({
 
         },
     });
+
+    // Reset form values when dialog opens with new defaults
+    useEffect(() => {
+        if (open) {
+            form.reset({
+                endpoint: defaultEndpoint,
+                method: defaultMethod,
+                body: defaultBody,
+            });
+        }
+    }, [open, defaultEndpoint, defaultMethod, defaultBody, form]);
 
     const watchMethod = form.watch("method");
     const showBodyField = ["POST", "PUT", "PATCH"].includes(watchMethod);
@@ -178,7 +191,7 @@ export const HttpRequestDialog = ({
                                             />
                                         </FormControl>
                                         <FormDescription>
-                                            JSON payload for the request. Use {"{{variables}}"} for simple values or {"{{json variable}}"} to stringify objects.
+                                            JSON with template variables. Use {"{{variables}}"} for simple values or {"{{json variable}}"} to stringify objects.
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -186,21 +199,9 @@ export const HttpRequestDialog = ({
                             />
                         )}
 
-                        <div className="flex justify-end space-x-2 pt-4">
-                            <button
-                                type="button"
-                                onClick={() => onOpenChange(false)}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                            >
-                                Save
-                            </button>
-                        </div>
+                        <DialogFooter className="mt-4">
+                            <Button type="submit"> Save </Button>
+                        </DialogFooter>
                     </form>
 
                 </Form>
