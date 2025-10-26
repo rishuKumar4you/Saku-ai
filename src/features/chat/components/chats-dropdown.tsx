@@ -10,6 +10,7 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Suspense } from "react";
 
 interface Conversation {
     id: string;
@@ -19,6 +20,14 @@ interface Conversation {
 }
 
 export const ChatsDropdown = () => {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ChatsDropdownContent />
+        </Suspense>
+    );
+};
+
+const ChatsDropdownContent = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [isLoading, setIsLoading] = useState(true);

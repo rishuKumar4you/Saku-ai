@@ -10,7 +10,8 @@ export function useAuthRedirect() {
   useEffect(() => {
     const checkAuthAndRedirect = async () => {
       try {
-        const session = await auth.api.getSession();
+        const session = await auth.api.getSession(
+            {headers: await import('next/headers').then(m => m.headers())});
 
         if (session) {
           // Check if user has completed onboarding
