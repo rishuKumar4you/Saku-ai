@@ -211,12 +211,30 @@ exports.Prisma.ConnectionScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ExecutionScalarFieldEnum = {
+  id: 'id',
+  workflowId: 'workflowId',
+  status: 'status',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  error: 'error',
+  result: 'result',
+  logs: 'logs',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
 };
 
 exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull
 };
 
@@ -254,6 +272,14 @@ exports.NodeType = exports.$Enums.NodeType = {
   SCHEDULE_TRIGGER: 'SCHEDULE_TRIGGER'
 };
 
+exports.ExecutionStatus = exports.$Enums.ExecutionStatus = {
+  PENDING: 'PENDING',
+  RUNNING: 'RUNNING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Session: 'Session',
@@ -262,7 +288,8 @@ exports.Prisma.ModelName = {
   Credential: 'Credential',
   Workflow: 'Workflow',
   Node: 'Node',
-  Connection: 'Connection'
+  Connection: 'Connection',
+  Execution: 'Execution'
 };
 
 /**

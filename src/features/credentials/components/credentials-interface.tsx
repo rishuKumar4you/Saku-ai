@@ -16,16 +16,32 @@ import {
   XIcon,
   AlertCircleIcon 
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ApiKeyForm } from '@/features/credentials/components/api-key-form';
 import { GmailOAuthForm } from '@/features/credentials/components/gmail-oauth-form';
+import { toast } from 'sonner';
+import { useSearchParams } from 'next/navigation';
 
 export function CredentialsInterface() {
   const [activeTab, setActiveTab] = useState('ai-services');
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
   
   const { data: credentials, isLoading, refetch } = useQuery(trpc.credentials.getAll.queryOptions());
+  
+  // Handle OAuth success/error messages
+  useEffect(() => {
+    const success = searchParams.get('success');
+    const error = searchParams.get('error');
+    
+    if (success === 'gmail_connected') {
+      toast.success('Gmail connected successfully!');
+      queryClient.invalidateQueries(trpc.credentials.getAll.queryOptions());
+    } else if (error) {
+      toast.error(`Gmail connection failed: ${error}`);
+    }
+  }, [searchParams, queryClient, trpc.credentials.getAll]);
   
   const toggleActiveMutation = useMutation(
     trpc.credentials.toggleActive.mutationOptions({

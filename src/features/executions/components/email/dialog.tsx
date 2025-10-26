@@ -30,7 +30,6 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 const formSchema = z.object({
-    senderEmail: z.string().email("Please enter a valid sender email address"),
     receiverEmail: z.string().email("Please enter a valid receiver email address"),
     subject: z.string().min(1, "Subject is required"),
     content: z.string().min(1, "Content is required"),
@@ -44,7 +43,7 @@ interface Props {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSubmit: (values: z.infer<typeof formSchema>) => void;
-    defaultSenderEmail?: string;
+    nodeId?: string;
     defaultReceiverEmail?: string;
     defaultSubject?: string;
     defaultContent?: string;
@@ -56,7 +55,7 @@ export const EmailDialog = ({
     open,
     onOpenChange,
     onSubmit,
-    defaultSenderEmail = "",
+    nodeId,
     defaultReceiverEmail = "",
     defaultSubject = "",
     defaultContent = "",
@@ -67,7 +66,6 @@ export const EmailDialog = ({
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            senderEmail: defaultSenderEmail,
             receiverEmail: defaultReceiverEmail,
             subject: defaultSubject,
             content: defaultContent,
@@ -80,7 +78,6 @@ export const EmailDialog = ({
     useEffect(() => {
         if (open) {
             form.reset({
-                senderEmail: defaultSenderEmail,
                 receiverEmail: defaultReceiverEmail,
                 subject: defaultSubject,
                 content: defaultContent,
@@ -88,7 +85,7 @@ export const EmailDialog = ({
                 template: defaultTemplate,
             });
         }
-    }, [open, defaultSenderEmail, defaultReceiverEmail, defaultSubject, defaultContent, defaultUseTemplate, defaultTemplate, form]);
+    }, [open, defaultReceiverEmail, defaultSubject, defaultContent, defaultUseTemplate, defaultTemplate, form]);
 
     const watchUseTemplate = form.watch("useTemplate");
     
@@ -106,6 +103,16 @@ export const EmailDialog = ({
                     </DialogTitle>
                     <DialogDescription>
                         Configure email settings for sending emails via Google SMTP.
+                        {nodeId && (
+                            <div className="mt-2 p-2 bg-muted rounded-md">
+                                <p className="text-sm font-mono">
+                                    <span className="font-medium">Node ID:</span> {nodeId}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    This node receives data from previous nodes
+                                </p>
+                            </div>
+                        )}
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -113,29 +120,7 @@ export const EmailDialog = ({
                         onSubmit={form.handleSubmit(handleSubmit)}
                         className="space-y-6 mt-4"
                     >
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="senderEmail"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>
-                                            Sender Email
-                                        </FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="sender@example.com"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormDescription>
-                                            Email address that will send the message.
-                                        </FormDescription>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
+                        <div className="grid grid-cols-1 gap-4">
                             <FormField
                                 control={form.control}
                                 name="receiverEmail"

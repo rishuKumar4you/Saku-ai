@@ -51,6 +51,7 @@ interface Props {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSubmit: (values: z.infer<typeof formSchema>) => void;
+    nodeId?: string;
     defaultFunction?: AIFunction;
     defaultPrompt?: string;
     defaultModel?: string;
@@ -62,6 +63,7 @@ export const GeminiDialog = ({
     open,
     onOpenChange,
     onSubmit,
+    nodeId,
     defaultFunction = "text_generation",
     defaultPrompt = "",
     defaultModel = "gemini-2.5-flash",
@@ -109,6 +111,16 @@ export const GeminiDialog = ({
                     </DialogTitle>
                     <DialogDescription>
                         Configure settings for the Google Gemini AI processing node.
+                        {nodeId && (
+                            <div className="mt-2 p-2 bg-muted rounded-md">
+                                <p className="text-sm font-mono">
+                                    <span className="font-medium">Node ID:</span> {nodeId}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    Use this ID in email templates: {`{{${nodeId}.content}}`}
+                                </p>
+                            </div>
+                        )}
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>

@@ -13,9 +13,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useSuspenceWorkflow, useUpdateWorkflow, useUpdateWorkflowName } from "@/features/workflows/hooks/use-workflows";
+import { useWorkflow, useUpdateWorkflow, useUpdateWorkflowName } from "@/features/workflows/hooks/use-workflows";
 import { useAtomValue } from 'jotai';
 import { editorAtom } from "../store/atoms";
+import { ExecuteWorkflowButton } from "./execute-workflow-button";
 
 export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
     
@@ -31,14 +32,23 @@ export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
         const nodes = editor.getNodes();
         const edges = editor.getEdges();
 
+        // Transform nodes to match the expected type
+        const transformedNodes = nodes.map(node => ({
+            id: node.id,
+            type: node.type || 'UNKNOWN',
+            position: node.position,
+            data: node.data || {},
+        }));
+
         saveWorkflow.mutate({
             id: workflowId,
-            nodes,
+            nodes: transformedNodes,
             edges,
         });
     }
     return (
-        <div className="ml-auto">
+        <div className="ml-auto flex gap-2">
+            <ExecuteWorkflowButton workflowId={workflowId} />
             <Button size="sm" onClick={handleSave} disabled={saveWorkflow.isPending}>
                 <SaveIcon className="size-4" />
                 Save 
@@ -48,18 +58,18 @@ export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
 };
 
 export const EditorNameInput = ({ workflowId }: { workflowId: string }) => {
-    const { data: workflow } = useSuspenceWorkflow(workflowId);
+    const { data: workflow, isLoading, error } = useWorkflow(workflowId);
     const updateWorkflow = useUpdateWorkflowName();
     const [isEditing, setIsEditing] = useState(false);
-    const [name, setName] = useState(workflow.name);
+    const [name, setName] = useState(workflow?.name || 'Loading...');
 
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(()=>{
-        if (workflow.name) {
+        if (workflow?.name) {
             setName(workflow.name);
         }
-    }, [workflow.name]);
+    }, [workflow?.name]);
     
     useEffect(() => { 
         if (isEditing && inputRef.current) {
@@ -69,7 +79,7 @@ export const EditorNameInput = ({ workflowId }: { workflowId: string }) => {
     }, [isEditing]);
 
     const handleSave = async () => {
-        if (name === workflow.name) {
+        if (!workflow || name === workflow.name) {
             setIsEditing(false);
             return;
         }
@@ -91,10 +101,26 @@ export const EditorNameInput = ({ workflowId }: { workflowId: string }) => {
         if (e.key == "Enter") {
             handleSave();
         } else if (e.key === 'Escape') {
-            setName(workflow.name);
+            setName(workflow?.name || '');
             setIsEditing(false);
         }
     };
+
+    if (isLoading) {
+        return (
+            <BreadcrumbItem>
+                <div className="text-sm text-muted-foreground">Loading...</div>
+            </BreadcrumbItem>
+        );
+    }
+
+    if (error || !workflow) {
+        return (
+            <BreadcrumbItem>
+                <div className="text-sm text-muted-foreground">Workflow not found</div>
+            </BreadcrumbItem>
+        );
+    }
 
     if (isEditing) {
         return (

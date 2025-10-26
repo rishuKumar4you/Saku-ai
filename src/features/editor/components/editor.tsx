@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { 
     ReactFlow,
     applyNodeChanges,
@@ -17,7 +17,7 @@ import {
 } from "@xyflow/react";
 
 import { ErrorView, LoadingView } from "@/components/entity-components";
-import { useSuspenceWorkflow } from "@/features/workflows/hooks/use-workflows";
+import { useWorkflow } from "@/features/workflows/hooks/use-workflows";
 import '@xyflow/react/dist/style.css';
 import { nodeComponents } from "@/config/node-components";
 import { AddNodeButton } from "./add-node-button";
@@ -33,13 +33,20 @@ export const EditorError = () => {
 }
 
 export const Editor = ({ workflowId }: { workflowId: string }) => {
-    const { data: workflow 
-    } = useSuspenceWorkflow(workflowId);
+    const { data: workflow, isLoading, error } = useWorkflow(workflowId);
 
     const setEditor = useSetAtom(editorAtom);
 
-    const [nodes, setNodes] = useState<Node[]>(workflow.nodes);
-    const [edges, setEdges] = useState<Edge[]>(workflow.edges);
+    const [nodes, setNodes] = useState<Node[]>(workflow?.nodes || []);
+    const [edges, setEdges] = useState<Edge[]>(workflow?.edges || []);
+
+    // Update nodes and edges when workflow data changes
+    useEffect(() => {
+        if (workflow) {
+            setNodes(workflow.nodes);
+            setEdges(workflow.edges);
+        }
+    }, [workflow]);
 
     const onNodesChange = useCallback(
         (changes:NodeChange[]) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)), [],
@@ -52,6 +59,15 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
     const onConnect = useCallback(
         (params: Connection) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)), [],
     );
+
+    // Conditional returns must come after all hooks
+    if (isLoading) {
+        return <LoadingView message="Loading editor..." />;
+    }
+
+    if (error || !workflow) {
+        return <ErrorView message="Error loading workflow" />;
+    }
 
     return (
         <div className="size-full">

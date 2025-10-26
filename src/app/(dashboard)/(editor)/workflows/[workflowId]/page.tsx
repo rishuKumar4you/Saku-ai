@@ -16,7 +16,11 @@ interface PageProps {
 const Page = async ({ params }: PageProps) => { 
     await requireAuth();
     const { workflowId } = await params;
-    prefetchWorkflow(workflowId);
+    
+    // Skip prefetching for now to avoid hydration issues
+    // The components will handle loading states properly
+    // prefetchWorkflow(workflowId);
+    
     return (
         <HydrateClient>
                 <ErrorBoundary fallback={<EditorError/>}>

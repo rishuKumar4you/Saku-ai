@@ -9,6 +9,7 @@ import { BaseHandle } from "@/components/react-flow/base-handle";
 import { WorkflowNode } from "@/components/workflow-node";
 import { eventsGetRequestFromJSON } from "@polar-sh/sdk/models/operations/eventsget.js";
 import {type NodeStatus, NodeStatusIndicator } from "@/components/react-flow/node-status-indicator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface BaseTriggerNodeProps extends NodeProps {
 
@@ -54,41 +55,49 @@ export const BaseTriggerNode = memo(
         };
 
         return (
-            <WorkflowNode
-                name={name}
-                description={description}
-                onDelete={handleDelete}
-                onSettings={onSettings}
-            >   
-                <NodeStatusIndicator
-                    status={status}
-                    variant="border"
-                    className="rounded-l-2xl"
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <WorkflowNode
+                        name={name}
+                        description={description}
+                        onDelete={handleDelete}
+                        onSettings={onSettings}
+                    >   
+                        <NodeStatusIndicator
+                            status={status}
+                            variant="border"
+                            className="rounded-l-2xl"
 
-                >
-                <BaseNode status={status} onDoubleClick={onDoubleClick} className="
-                rounded-l-2xl relative group">
-                    <BaseNodeContent>
-                        {typeof Icon === "string" ? (
-                            <Image
-                                src={Icon}
-                                alt={name}
-                                width={16}
-                                height={16} />
-                        ) : (
-                            <Icon className="size-4 text-muted-foreground" />
-                        )}
-                        {children}
-                        <BaseHandle
-                            id="source-1"
-                            type="source"
-                            position={Position.Right}
-                        />
-                    </BaseNodeContent>
-                    
-                    </BaseNode>
-                    </NodeStatusIndicator>
-            </WorkflowNode>
+                        >
+                        <BaseNode status={status} onDoubleClick={onDoubleClick} className="
+                        rounded-l-2xl relative group">
+                            <BaseNodeContent>
+                                {typeof Icon === "string" ? (
+                                    <Image
+                                        src={Icon}
+                                        alt={name}
+                                        width={16}
+                                        height={16} />
+                                ) : (
+                                    <Icon className="size-4 text-muted-foreground" />
+                                )}
+                                {children}
+                                <BaseHandle
+                                    id="source-1"
+                                    type="source"
+                                    position={Position.Right}
+                                />
+                            </BaseNodeContent>
+                            
+                            </BaseNode>
+                            </NodeStatusIndicator>
+                    </WorkflowNode>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p className="font-medium">Node ID: {id}</p>
+                    <p className="text-xs text-muted-foreground">Click to copy</p>
+                </TooltipContent>
+            </Tooltip>
         )
     },
 );

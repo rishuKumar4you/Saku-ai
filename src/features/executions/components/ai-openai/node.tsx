@@ -49,6 +49,7 @@ export const OpenAINode = memo((
                 open={dialogOpen}
                 onOpenChange={setDialogOpen}
                 onSubmit={handleSubmit}
+                nodeId={props.id}
                 defaultFunction={nodeData.function}
                 defaultPrompt={nodeData.prompt}
                 defaultModel={nodeData.model}

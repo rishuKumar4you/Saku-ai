@@ -8,7 +8,7 @@ import { ChatHistorySidebar } from "@/features/chat/components/chat-history-side
 const Page = async ({ searchParams }: { searchParams: { convId?: string } }) => {
     await requireAuth();
     
-    const convId = searchParams?.convId || null;
+    const convId = await searchParams?.convId || null;
     
     return (
         <div className="flex h-full">

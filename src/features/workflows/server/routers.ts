@@ -172,13 +172,18 @@ export const workflowsRouter = createTRPCRouter({
                   }),
   getOne: protectedProcedure.input(z.object({id: z.string()}))
               .query(async ({ctx, input}) => {
-                const workflow = await prisma.workflow.findUniqueOrThrow({
+                const workflow = await prisma.workflow.findUnique({
                   where: {
                     id: input.id,
                     userId: ctx.auth.user.id,
                   },
                   include: {nodes: true, connections: true},
                 });
+
+                if (!workflow) {
+                  throw new Error('Workflow not found');
+                }
+
                 // transform server node to react-flow compatible nodes
                 const nodes: Node[] = workflow.nodes.map(
                     (node) => ({
