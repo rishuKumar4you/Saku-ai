@@ -14,34 +14,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({error: 'Unauthorized'}, {status: 401});
     }
 
-    const {workflowId} = await request.json() as {
-      workflowId: string;
+    const {triggerId} = await request.json() as {
+      triggerId: string;
     };
 
-    // Verify workflow belongs to user
-    const workflow = await prisma.workflow.findFirst({
-      where: {
-        id: workflowId,
-        userId: session.user.id,
-      },
+    // Get trigger and verify it belongs to user
+    const trigger = await prisma.workflowTrigger.findUnique({
+      where: {id: triggerId},
+      include: {workflow: true},
     });
 
-    if (!workflow) {
-      return NextResponse.json({error: 'Workflow not found'}, {status: 404});
+    if (!trigger) {
+      return NextResponse.json({error: 'Trigger not found'}, {status: 404});
     }
 
-    // Send cancel event to stop all triggers for this workflow
+    if (trigger.workflow.userId !== session.user.id) {
+      return NextResponse.json({error: 'Unauthorized'}, {status: 401});
+    }
+
+    // Update trigger status to STOPPED
+    await prisma.workflowTrigger.update({
+      where: {id: triggerId},
+      data: {status: 'STOPPED'},
+    });
+
+    // Send cancel event to stop the trigger monitor
     await inngest.send({
-      name: 'workflow/cancel',
+      name: 'workflow/trigger/stop',
       data: {
-        workflowId,
-        userId: session.user.id,
+        triggerId,
+        workflowId: trigger.workflowId,
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Trigger monitors stopped successfully',
+      message: 'Trigger monitor stopped successfully',
     });
   } catch (error) {
     console.error('Error stopping trigger:', error);

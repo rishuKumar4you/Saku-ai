@@ -728,28 +728,126 @@ async function executeEmailTriggerNode(nodeData: any, credential: any) {
   }
 }
 
+// Helper to check email once (no waiting loop)
+async function checkEmailOnce(nodeData: any, credential: any) {
+  if (!credential || !credential.accessToken) {
+    throw new Error('Missing Gmail OAuth token for email trigger');
+  }
+
+  try {
+    const oauth2Client = new googleapis.auth.OAuth2(
+        process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET,
+        process.env.BETTER_AUTH_URL + '/api/auth/gmail/callback');
+
+    oauth2Client.setCredentials({
+      access_token: credential.accessToken,
+      refresh_token: credential.refreshToken,
+    });
+
+    const gmail = googleapis.gmail({version: 'v1', auth: oauth2Client});
+
+    let query = 'is:unread';
+    if (nodeData.senderEmail) {
+      query += ` from:${nodeData.senderEmail}`;
+    }
+    if (nodeData.subjectFilter) {
+      query += ` subject:${nodeData.subjectFilter}`;
+    }
+
+    const response = await gmail.users.messages.list({
+      userId: 'me',
+      q: query,
+      maxResults: 1,
+    });
+
+    const messages = response.data.messages || [];
+
+    if (messages.length === 0) {
+      return {
+        type: 'trigger',
+        status: 'completed',
+        data: {message: 'No matching emails found', triggered: false},
+      };
+    }
+
+    // Found an email!
+    const messageId = messages[0].id;
+    const messageDetails = await gmail.users.messages.get({
+      userId: 'me',
+      id: messageId!,
+      format: 'full',
+    });
+
+    const headers = messageDetails.data.payload?.headers || [];
+    const from =
+        headers.find(h => h.name?.toLowerCase() === 'from')?.value || '';
+    const subject =
+        headers.find(h => h.name?.toLowerCase() === 'subject')?.value || '';
+    const date =
+        headers.find(h => h.name?.toLowerCase() === 'date')?.value || '';
+
+    let body = '';
+    if (messageDetails.data.payload?.parts) {
+      const textPart = messageDetails.data.payload.parts.find(
+          part => part.mimeType === 'text/plain');
+      if (textPart?.body?.data) {
+        body = Buffer.from(textPart.body.data, 'base64').toString('utf-8');
+      }
+    } else if (messageDetails.data.payload?.body?.data) {
+      body = Buffer.from(messageDetails.data.payload.body.data, 'base64')
+                 .toString('utf-8');
+    }
+
+    // Mark as read
+    await gmail.users.messages.modify({
+      userId: 'me',
+      id: messageId!,
+      requestBody: {removeLabelIds: ['UNREAD']},
+    });
+
+    return {
+      type: 'trigger',
+      status: 'completed',
+      data: {
+        message: 'Email trigger activated',
+        triggered: true,
+        email: {from, subject, body: body.substring(0, 500), date, messageId},
+        content: body,
+        timestamp: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    console.error('Email check error:', error);
+    return {
+      type: 'trigger',
+      status: 'completed',
+      data: {message: 'Error checking email', triggered: false},
+    };
+  }
+}
+
 // Continuous email trigger function (runs indefinitely)
 export const emailTriggerMonitor = inngest.createFunction(
-    {id: 'email-trigger-monitor', cancelOn: [{event: 'workflow/cancel'}]},
+    {
+      id: 'email-trigger-monitor',
+      cancelOn: [{event: 'workflow/trigger/stop', match: 'data.triggerId'}],
+    },
     {event: 'workflow/email-trigger/start'},
 
     async ({event, step}) => {
-      const {workflowId, userId, nodeId, nodeData} = event.data;
+      const {workflowId, userId, nodeId, nodeData, triggerId} = event.data;
 
       console.log('Starting continuous email trigger monitor:', {
         workflowId,
         userId,
         nodeId,
+        triggerId,
       });
 
       // Get user credentials
       const credentials = await step.run('get-credentials', async () => {
         return prisma.credential.findFirst({
-          where: {
-            userId,
-            type: 'GMAIL_OAUTH',
-            isActive: true,
-          },
+          where: {userId, type: 'GMAIL_OAUTH', isActive: true},
         });
       });
 
@@ -758,12 +856,28 @@ export const emailTriggerMonitor = inngest.createFunction(
       }
 
       // Continuously monitor for emails
+      let iteration = 0;
       while (true) {
+        iteration++;
+
+        // Check if trigger is still active
+        const trigger =
+            await step.run(`check-trigger-status-${iteration}`, async () => {
+              return prisma.workflowTrigger.findUnique({
+                where: {id: triggerId},
+              });
+            });
+
+        if (!trigger || trigger.status === 'STOPPED') {
+          console.log('Trigger stopped, exiting monitor');
+          break;
+        }
+
         try {
-          // Check for matching emails
+          // Check for matching emails (quick check)
           const result =
-              await step.run(`check-email-${Date.now()}`, async () => {
-                return executeEmailTriggerNode(nodeData, credentials);
+              await step.run(`check-email-${iteration}`, async () => {
+                return checkEmailOnce(nodeData, credentials);
               });
 
           // If email was triggered, execute the workflow
@@ -771,17 +885,23 @@ export const emailTriggerMonitor = inngest.createFunction(
             console.log('Email trigger activated, executing workflow');
 
             // Create a new execution
-            const execution = await step.run('create-execution', async () => {
-              return prisma.execution.create({
-                data: {
-                  workflowId,
-                  status: ExecutionStatus.PENDING,
-                },
+            const execution =
+                await step.run(`create-execution-${iteration}`, async () => {
+                  return prisma.execution.create({
+                    data: {workflowId, status: ExecutionStatus.PENDING},
+                  });
+                });
+
+            // Update last triggered time
+            await step.run(`update-trigger-time-${iteration}`, async () => {
+              return prisma.workflowTrigger.update({
+                where: {id: triggerId},
+                data: {lastTriggeredAt: new Date()},
               });
             });
 
             // Trigger workflow execution
-            await step.run('trigger-workflow', async () => {
+            await step.run(`trigger-workflow-${iteration}`, async () => {
               return inngest.send({
                 name: 'workflow/execute',
                 data: {
@@ -794,50 +914,78 @@ export const emailTriggerMonitor = inngest.createFunction(
             });
           }
 
-          // Wait before next check (5 minutes)
-          await step.sleep('wait-before-next-check', '5m');
+          // Wait before next check (30 seconds)
+          await step.sleep(`wait-${iteration}`, '30s');
 
         } catch (error) {
           console.error('Error in email trigger monitor:', error);
-          // Wait before retrying
-          await step.sleep('wait-after-error', '1m');
+          await step.sleep(`wait-after-error-${iteration}`, '1m');
         }
       }
+
+      console.log('Email trigger monitor stopped');
+      return {stopped: true, iterations: iteration};
     },
 );
 
 // Schedule trigger function (runs on a schedule)
 export const scheduleTriggerMonitor = inngest.createFunction(
-    {id: 'schedule-trigger-monitor', cancelOn: [{event: 'workflow/cancel'}]},
+    {
+      id: 'schedule-trigger-monitor',
+      cancelOn: [{event: 'workflow/trigger/stop', match: 'data.triggerId'}],
+    },
     {event: 'workflow/schedule-trigger/start'},
 
     async ({event, step}) => {
-      const {workflowId, userId, nodeId, nodeData} = event.data;
+      const {workflowId, userId, nodeId, nodeData, triggerId} = event.data;
 
       console.log('Starting schedule trigger monitor:', {
         workflowId,
         userId,
         nodeId,
+        triggerId,
         schedule: nodeData,
       });
 
       // Continuously run on schedule
+      let iteration = 0;
       while (true) {
+        iteration++;
+
+        // Check if trigger is still active
+        const trigger =
+            await step.run(`check-trigger-status-${iteration}`, async () => {
+              return prisma.workflowTrigger.findUnique({
+                where: {id: triggerId},
+              });
+            });
+
+        if (!trigger || trigger.status === 'STOPPED') {
+          console.log('Trigger stopped, exiting monitor');
+          break;
+        }
+
         try {
           console.log('Schedule trigger activated, executing workflow');
 
           // Create a new execution
-          const execution = await step.run('create-execution', async () => {
-            return prisma.execution.create({
-              data: {
-                workflowId,
-                status: ExecutionStatus.PENDING,
-              },
+          const execution =
+              await step.run(`create-execution-${iteration}`, async () => {
+                return prisma.execution.create({
+                  data: {workflowId, status: ExecutionStatus.PENDING},
+                });
+              });
+
+          // Update last triggered time
+          await step.run(`update-trigger-time-${iteration}`, async () => {
+            return prisma.workflowTrigger.update({
+              where: {id: triggerId},
+              data: {lastTriggeredAt: new Date()},
             });
           });
 
           // Trigger workflow execution
-          await step.run('trigger-workflow', async () => {
+          await step.run(`trigger-workflow-${iteration}`, async () => {
             return inngest.send({
               name: 'workflow/execute',
               data: {
@@ -868,13 +1016,15 @@ export const scheduleTriggerMonitor = inngest.createFunction(
           }
 
           console.log(`Waiting ${waitTime} before next execution`);
-          await step.sleep('wait-for-next-schedule', waitTime);
+          await step.sleep(`wait-${iteration}`, waitTime);
 
         } catch (error) {
           console.error('Error in schedule trigger monitor:', error);
-          // Wait before retrying
-          await step.sleep('wait-after-error', '1m');
+          await step.sleep(`wait-after-error-${iteration}`, '1m');
         }
       }
+
+      console.log('Schedule trigger monitor stopped');
+      return {stopped: true, iterations: iteration};
     },
 );

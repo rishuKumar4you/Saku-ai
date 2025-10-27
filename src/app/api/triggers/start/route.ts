@@ -33,15 +33,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({error: 'Workflow not found'}, {status: 404});
     }
 
-    // Start the appropriate trigger monitor
-    let eventName = '';
-    if (nodeType === 'EMAIL_TRIGGER') {
-      eventName = 'workflow/email-trigger/start';
-    } else if (nodeType === 'SCHEDULE_TRIGGER') {
-      eventName = 'workflow/schedule-trigger/start';
-    } else {
+    // Validate trigger type
+    if (nodeType !== 'EMAIL_TRIGGER' && nodeType !== 'SCHEDULE_TRIGGER') {
       return NextResponse.json({error: 'Invalid trigger type'}, {status: 400});
     }
+
+    // Create or update trigger record
+    const trigger = await prisma.workflowTrigger.upsert({
+      where: {
+        workflowId_nodeId: {
+          workflowId,
+          nodeId,
+        },
+      },
+      create: {
+        workflowId,
+        nodeId,
+        triggerType: nodeType,
+        config: nodeData,
+        status: 'ACTIVE',
+      },
+      update: {
+        config: nodeData,
+        status: 'ACTIVE',
+      },
+    });
+
+    // Start the appropriate trigger monitor
+    const eventName = nodeType === 'EMAIL_TRIGGER' ?
+        'workflow/email-trigger/start' :
+        'workflow/schedule-trigger/start';
 
     // Send event to Inngest to start the monitor
     await inngest.send({
@@ -51,12 +72,14 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         nodeId,
         nodeData,
+        triggerId: trigger.id,
       },
     });
 
     return NextResponse.json({
       success: true,
       message: `${nodeType} monitor started successfully`,
+      triggerId: trigger.id,
     });
   } catch (error) {
     console.error('Error starting trigger:', error);

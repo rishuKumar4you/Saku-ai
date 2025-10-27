@@ -115,6 +115,7 @@ model Workflow {
   nodes Node[]
   connections Connection[]
   executions Execution[]
+  triggers WorkflowTrigger[]
   userId String
   user User @relation(fields: [userId],references: [id],onDelete: Cascade)
 
@@ -190,4 +191,25 @@ model Execution {
   updatedAt   DateTime       @updatedAt
 
   @@map("execution")
+}
+
+enum TriggerStatus {
+  ACTIVE
+  STOPPED
+}
+
+model WorkflowTrigger {
+  id          String        @id @default(cuid())
+  workflowId  String
+  workflow    Workflow      @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  nodeId      String        // The trigger node ID
+  triggerType NodeType      // EMAIL_TRIGGER or SCHEDULE_TRIGGER
+  status      TriggerStatus @default(ACTIVE)
+  config      Json          // Trigger configuration (email filters, schedule, etc.)
+  lastTriggeredAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([workflowId, nodeId])
+  @@map("workflow_trigger")
 }
