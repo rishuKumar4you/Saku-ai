@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 async function fetchDocs() {
-  const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const base = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const resp = await fetch(`${base.replace(/\/$/, "")}/api/docs`, { cache: "no-store" });
   const data = await resp.json().catch(() => ({ docs: [] }));
   return Array.isArray(data?.docs) ? data.docs : [];

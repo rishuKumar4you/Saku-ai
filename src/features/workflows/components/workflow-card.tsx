@@ -6,7 +6,7 @@ import { useRemoveWorkflow } from "../hooks/use-workflows";
 import { NodeType } from "@/generated/prisma";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Trash2 } from "lucide-react";
+import { MoreHorizontal, Trash2, MousePointerIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,8 +26,8 @@ interface WorkflowCardProps {
   };
 }
 
-// Map node types to their corresponding logo paths
-const getNodeLogo = (nodeType: NodeType): string | null => {
+// Map node types to their corresponding logo paths or icon type
+const getNodeLogo = (nodeType: NodeType): string | "icon" | null => {
   switch (nodeType) {
     case NodeType.AI_OPENAI:
       return "/openai.svg";
@@ -43,7 +43,7 @@ const getNodeLogo = (nodeType: NodeType): string | null => {
     case NodeType.SCHEDULE_TRIGGER:
       return "/google-calendar.svg";
     case NodeType.MANUAL_TRIGGER:
-      return "/window.svg"; // Using window as manual trigger
+      return "icon"; // Use MousePointerIcon component
     default:
       return null;
   }
@@ -61,13 +61,13 @@ const getUniqueNodeTypes = (nodes: Array<{ type: NodeType }>): NodeType[] => {
 };
 
 // Determine workflow status based on nodes
-const getWorkflowStatus = (nodes: Array<{ type: NodeType }>): { status: "Active" | "Draft"; color: string } => {
+const getWorkflowStatus = (nodes: Array<{ type: NodeType }>): { status: "Saved" | "Draft"; color: string } => {
   const hasConfiguredNodes = nodes.some(node => 
     node.type !== NodeType.INITIAL && node.type !== NodeType.MANUAL_TRIGGER
   );
   
   if (hasConfiguredNodes) {
-    return { status: "Active", color: "bg-green-100 text-green-800" };
+    return { status: "Saved", color: "bg-green-100 text-green-800" };
   }
   return { status: "Draft", color: "bg-gray-100 text-gray-600" };
 };
@@ -127,21 +127,25 @@ export const WorkflowCard = ({ workflow }: WorkflowCardProps) => {
         {/* Node Icons */}
         <div className="flex items-center gap-2">
           {uniqueNodeTypes.slice(0, 4).map((nodeType, index) => {
-            const logoPath = getNodeLogo(nodeType);
-            if (!logoPath) return null;
+            const logo = getNodeLogo(nodeType);
+            if (!logo) return null;
             
             return (
               <div
                 key={`${nodeType}-${index}`}
                 className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"
               >
-                <Image
-                  src={logoPath}
-                  alt={nodeType}
-                  width={20}
-                  height={20}
-                  className="object-contain"
-                />
+                {logo === "icon" ? (
+                  <MousePointerIcon className="w-5 h-5 text-gray-700" />
+                ) : (
+                  <Image
+                    src={logo}
+                    alt={nodeType}
+                    width={20}
+                    height={20}
+                    className="object-contain"
+                  />
+                )}
               </div>
             );
           })}
