@@ -13,6 +13,7 @@ import {
     Edit3,
     ExternalLink 
 } from "lucide-react";
+import Image from "next/image";
 
 interface Message {
     id: string;
@@ -38,9 +39,23 @@ export const ChatMessages = ({ messages }: ChatMessagesProps) => {
                 {messages.map((message) => (
                     <div
                         key={message.id}
-                        className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+                        className={`flex gap-2 ${message.isUser ? 'justify-end' : 'justify-start'}`}
                     >
-                        <div className={`max-w-[90%] sm:max-w-[80%] ${message.isUser ? 'order-2' : 'order-1'}`}>
+                        {/* AI Avatar - only show for bot messages */}
+                        {!message.isUser && (
+                            <div className="flex-shrink-0 mt-1">
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center bg-muted">
+                                    <Image 
+                                        src="/logos/logo.svg" 
+                                        alt="Saku AI" 
+                                        width={20} 
+                                        height={20}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                        
+                        <div className={`max-w-[85%] sm:max-w-[75%] ${message.isUser ? 'order-2' : 'order-1'}`}>
                             {message.isUser ? (
                                 <Card className="p-4 bg-primary text-primary-foreground">
                                     <p className="text-sm">{message.content}</p>

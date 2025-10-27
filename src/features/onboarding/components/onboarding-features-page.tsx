@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Image from "next/image";
 
 interface Feature {
     id: string;
@@ -122,12 +123,10 @@ export function OnboardingFeaturesPage() {
             {/* Right Section */}
             <div className="flex-1 bg-gray-50 p-8 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="relative mb-8">
+                    <div className="relative mb-8 inline-block">
                         <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto flex items-center justify-center">
-                            <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center">
-                                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white">
-                                    <path d="M8 12L16 4L24 12L20 16L24 20L16 28L8 20L12 16L8 12Z" fill="currentColor"/>
-                                </svg>
+                            <div className="w-20 h-20 flex items-center justify-center">
+                                <Image src="/logos/logo.svg" alt="Saku AI" width={80} height={80} />
                             </div>
                         </div>
                         <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">

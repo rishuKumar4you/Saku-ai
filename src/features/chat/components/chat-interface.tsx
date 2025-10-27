@@ -225,6 +225,21 @@ export const ChatInterface = () => {
         } catch { return false; }
     }
 
+    async function checkConnection(type: 'gmail' | 'drive' | 'calendar'): Promise<boolean> {
+        try {
+            const r = await fetch('/api/connectors');
+            const j = await r.json();
+            const items: any[] = Array.isArray(j?.connectors) ? j.connectors : [];
+            setConnectors(items);
+            
+            // Map the type to the connector key used in the backend
+            const connector = items.find((x:any) => x.key === type);
+            return !!connector?.connected;
+        } catch { 
+            return false; 
+        }
+    }
+
     async function connectGmail() {
         try {
             const r = await fetch('/api/connectors/gmail/auth-url');
@@ -293,7 +308,11 @@ export const ChatInterface = () => {
                     <ChatMessages messages={messages} />
                 )}
             </div>
-            <ChatInput onSendMessage={handleSendMessage} onSourcesChange={setSources} />
+            <ChatInput 
+                onSendMessage={handleSendMessage} 
+                onSourcesChange={setSources}
+                onCheckConnection={checkConnection}
+            />
         </div>
     );
 };

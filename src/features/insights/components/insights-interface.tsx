@@ -16,7 +16,6 @@ import {
     Clock,
     CheckCircle2,
     Activity,
-    Filter,
     Mail,
     FileText,
     Users,
@@ -217,13 +216,7 @@ export const InsightsInterface = () => {
                     {/* Recent Activities */}
                     <Card className="lg:col-span-2">
                         <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle>Recent Activities</CardTitle>
-                                <Button variant="outline" size="sm">
-                                    <Filter className="w-4 h-4 mr-2" />
-                                    Filter
-                                </Button>
-                            </div>
+                            <CardTitle>Recent Activities</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">

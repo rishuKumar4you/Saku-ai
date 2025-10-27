@@ -3,12 +3,13 @@
 import { Button } from "@/components/ui/button";
 import { 
     FileText, 
-    Image, 
+    Image as ImageIcon, 
     Search, 
     Newspaper, 
     BarChart3, 
     Code 
 } from "lucide-react";
+import Image from "next/image";
 
 interface WelcomeSectionProps {
     onStartChat: (message: string) => void;
@@ -21,7 +22,7 @@ const quickActions = [
         prompt: "Help me write compelling copy for my product launch"
     },
     {
-        icon: Image,
+        icon: ImageIcon,
         label: "Image Generation",
         prompt: "Generate an image for my blog post about AI"
     },
@@ -55,8 +56,8 @@ export const WelcomeSection = ({ onStartChat }: WelcomeSectionProps) => {
                 <div className="text-center space-y-6 max-w-2xl">
                     {/* Logo */}
                     <div className="flex justify-center">
-                        <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
-                            <span className="text-2xl font-bold text-primary-foreground">S</span>
+                        <div className="w-20 h-20 flex items-center justify-center">
+                            <Image src="/logos/logo.svg" alt="Saku AI" width={80} height={80} />
                         </div>
                     </div>
                     

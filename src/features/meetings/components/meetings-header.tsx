@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -14,11 +15,9 @@ import {
     ChevronDown,
     Zap,
     Network,
-    Lock,
-    Upload,
-    Paperclip,
-    Mic
+    Lock
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface MeetingsHeaderProps {
     activeTab: "my-meetings" | "shared-with-me" | "incomplete";
@@ -33,78 +32,77 @@ export const MeetingsHeader = ({
     searchQuery, 
     onSearchChange 
 }: MeetingsHeaderProps) => {
+    const [selectedModel, setSelectedModel] = useState("Gemini 2.5 Pro");
+
+    const handleModelSelect = (model: string) => {
+        if (model === "GPT-4" || model === "Claude 4.5") {
+            toast.info("Meetings only supports Gemini for now", {
+                description: "Please use Gemini 2.5 Pro for meetings.",
+                duration: 4000,
+            });
+            return;
+        }
+        setSelectedModel(model);
+    };
+
     return (
         <div className="border-b bg-background">
             {/* Top controls bar */}
-            <div className="flex items-center justify-between px-6 py-3 border-b">
-                <div className="flex items-center gap-3">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="gap-2">
-                                <Zap className="h-4 w-4" />
-                                GPT-4
-                                <ChevronDown className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem>
-                                <Zap className="h-4 w-4 mr-2" />
-                                GPT-4
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <Zap className="h-4 w-4 mr-2" />
-                                Claude 4.5
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <Zap className="h-4 w-4 mr-2" />
-                                Gemini 2.5 Pro
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+            <div className="flex items-center gap-3 px-6 py-3 border-b">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-2">
+                            <Zap className="h-4 w-4" />
+                            {selectedModel}
+                            <ChevronDown className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleModelSelect("GPT-4")}>
+                            <Zap className="h-4 w-4 mr-2" />
+                            GPT-4
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleModelSelect("Claude 4.5")}>
+                            <Zap className="h-4 w-4 mr-2" />
+                            Claude 4.5
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleModelSelect("Gemini 2.5 Pro")}>
+                            <Zap className="h-4 w-4 mr-2" />
+                            Gemini 2.5 Pro
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="gap-2">
-                                <Network className="h-4 w-4" />
-                                All Sources
-                                <ChevronDown className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem>All Sources</DropdownMenuItem>
-                            <DropdownMenuItem>Google Meet</DropdownMenuItem>
-                            <DropdownMenuItem>Zoom</DropdownMenuItem>
-                            <DropdownMenuItem>Microsoft Teams</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-2">
+                            <Network className="h-4 w-4" />
+                            All Sources
+                            <ChevronDown className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem>All Sources</DropdownMenuItem>
+                        <DropdownMenuItem>Google Meet</DropdownMenuItem>
+                        <DropdownMenuItem>Zoom</DropdownMenuItem>
+                        <DropdownMenuItem>Microsoft Teams</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="gap-2">
-                                <Lock className="h-4 w-4" />
-                                All Access
-                                <ChevronDown className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem>All Access</DropdownMenuItem>
-                            <DropdownMenuItem>Limited Access</DropdownMenuItem>
-                            <DropdownMenuItem>Read Only</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                        <Paperclip className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                        <Mic className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                        <Upload className="h-4 w-4" />
-                    </Button>
-                </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-2">
+                            <Lock className="h-4 w-4" />
+                            All Access
+                            <ChevronDown className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem>All Access</DropdownMenuItem>
+                        <DropdownMenuItem>Limited Access</DropdownMenuItem>
+                        <DropdownMenuItem>Read Only</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
 
             {/* Main search bar */}

@@ -10,25 +10,89 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { 
     Send, 
-    Image, 
-    Mic, 
     Paperclip,
     ChevronDown,
     Zap,
     Network,
     Lock
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface ChatInputProps {
     onSendMessage: (message: string) => void;
     onSourcesChange?: (sources: { emails: boolean; calendar: boolean; files: boolean; drive: boolean }) => void;
+    onCheckConnection?: (type: 'gmail' | 'drive' | 'calendar') => Promise<boolean>;
 }
 
-export const ChatInput = ({ onSendMessage, onSourcesChange }: ChatInputProps) => {
+export const ChatInput = ({ onSendMessage, onSourcesChange, onCheckConnection }: ChatInputProps) => {
     const [message, setMessage] = useState("");
-    const [selectedModel, setSelectedModel] = useState("GPT-4");
+    const [selectedModel, setSelectedModel] = useState("Gemini 2.5 Pro");
     const [sources, setSources] = useState({ emails: false, calendar: false, files: false, drive: false });
     const fileInputId = "chat-file-upload-input";
+
+    const handleModelSelect = (model: string) => {
+        if (model === "GPT-4" || model === "Claude 4.5") {
+            toast.info("Right now we only support Gemini", {
+                description: "Please use Gemini 2.5 Pro for now.",
+                duration: 4000,
+            });
+            return;
+        }
+        setSelectedModel(model);
+    };
+
+    const handleSourceToggle = async (sourceType: 'emails' | 'calendar' | 'drive' | 'files') => {
+        // For files, no connection check needed
+        if (sourceType === 'files') {
+            const next = { ...sources, [sourceType]: !sources[sourceType] };
+            setSources(next);
+            onSourcesChange?.(next);
+            return;
+        }
+
+        // Check if trying to enable the source
+        if (!sources[sourceType]) {
+            // Map source types to connector types
+            const connectorMap = {
+                emails: 'gmail' as const,
+                calendar: 'calendar' as const,
+                drive: 'drive' as const,
+            };
+
+            const connectorType = connectorMap[sourceType];
+            
+            // Check if connected (only if callback is provided)
+            if (onCheckConnection) {
+                const isConnected = await onCheckConnection(connectorType);
+                
+                if (!isConnected) {
+                    // Show toast and don't toggle
+                    const sourceNames = {
+                        emails: 'Gmail',
+                        calendar: 'Google Calendar',
+                        drive: 'Google Drive',
+                    };
+                    
+                    toast.warning(`${sourceNames[sourceType]} not connected`, {
+                        description: `Please connect ${sourceNames[sourceType]} in Settings > Integrations first.`,
+                        duration: 5000,
+                        action: {
+                            label: "Go to Settings",
+                            onClick: () => {
+                                window.location.href = '/settings/integrations';
+                            }
+                        }
+                    });
+                    return;
+                }
+            }
+        }
+
+        // If connected or disabling, proceed with toggle
+        const next = { ...sources, [sourceType]: !sources[sourceType] };
+        setSources(next);
+        onSourcesChange?.(next);
+    };
 
     const handleSend = () => {
         if (message.trim()) {
@@ -59,15 +123,15 @@ export const ChatInput = ({ onSendMessage, onSourcesChange }: ChatInputProps) =>
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => setSelectedModel("GPT-4")}>
+                            <DropdownMenuItem onClick={() => handleModelSelect("GPT-4")}>
                                 <Zap className="h-4 w-4 mr-2" />
                                 GPT-4
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setSelectedModel("Claude 4.5")}>
+                            <DropdownMenuItem onClick={() => handleModelSelect("Claude 4.5")}>
                                 <Zap className="h-4 w-4 mr-2" />
                                 Claude 4.5
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setSelectedModel("Gemini 2.5 Pro")}>
+                            <DropdownMenuItem onClick={() => handleModelSelect("Gemini 2.5 Pro")}>
                                 <Zap className="h-4 w-4 mr-2" />
                                 Gemini 2.5 Pro
                             </DropdownMenuItem>
@@ -89,41 +153,25 @@ export const ChatInput = ({ onSendMessage, onSourcesChange }: ChatInputProps) =>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                             <DropdownMenuItem
-                                onClick={() => {
-                                    const next = { ...sources, emails: !sources.emails };
-                                    setSources(next);
-                                    onSourcesChange?.(next);
-                                }}
+                                onClick={() => handleSourceToggle('emails')}
                             >
                                 <Zap className="h-4 w-4 mr-2" />
                                 {sources.emails ? "Gmail ✓" : "Gmail"}
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                                onClick={() => {
-                                    const next = { ...sources, calendar: !sources.calendar };
-                                    setSources(next);
-                                    onSourcesChange?.(next);
-                                }}
+                                onClick={() => handleSourceToggle('calendar')}
                             >
                                 <Zap className="h-4 w-4 mr-2" />
                                 {sources.calendar ? "Calendar ✓" : "Calendar"}
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                                onClick={() => {
-                                    const next = { ...sources, drive: !sources.drive };
-                                    setSources(next);
-                                    onSourcesChange?.(next);
-                                }}
+                                onClick={() => handleSourceToggle('drive')}
                             >
                                 <Zap className="h-4 w-4 mr-2" />
                                 {sources.drive ? "Drive ✓" : "Drive"}
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                                onClick={() => {
-                                    const next = { ...sources, files: !sources.files };
-                                    setSources(next);
-                                    onSourcesChange?.(next);
-                                }}
+                                onClick={() => handleSourceToggle('files')}
                             >
                                 <Zap className="h-4 w-4 mr-2" />
                                 {sources.files ? "Documents ✓" : "Documents"}
@@ -174,24 +222,20 @@ export const ChatInput = ({ onSendMessage, onSourcesChange }: ChatInputProps) =>
                                     const next = { ...sources, files: true };
                                     setSources(next);
                                     onSourcesChange?.(next);
-                                    // Notify quickly
-                                    try { alert(`Uploaded ${file.name}`); } catch {}
+                                    // Notify user of successful upload
+                                    toast.success(`Uploaded ${file.name}`);
                                 }
-                            } catch {}
+                            } catch {
+                                toast.error("Failed to upload document");
+                            }
                             // Reset input so the same file can be chosen again later
                             (e.target as HTMLInputElement).value = "";
                         }} />
-                        <Button size="sm" variant="ghost" className="h-9 w-9 p-0 rounded-full">
-                            <Image className="h-4 w-4" />
-                        </Button>
                         <Button size="sm" variant="ghost" className="h-9 w-9 p-0 rounded-full" onClick={() => {
                             const el = document.getElementById(fileInputId) as HTMLInputElement | null;
                             el?.click();
                         }}>
                             <Paperclip className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" className="h-9 w-9 p-0 rounded-full">
-                            <Mic className="h-4 w-4" />
                         </Button>
                         <Button 
                             onClick={handleSend}

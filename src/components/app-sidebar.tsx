@@ -107,6 +107,18 @@ export const AppSidebar = () => {
                                 <span className="font-semibold text-sm">Saku AI</span>
                             </Link>
                         </SidebarMenuButton>
+                        {/* Collapsed state logo - only visible when sidebar is collapsed */}
+                        <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center">
+                            <Link href="/" prefetch>
+                                <Image
+                                    src="/logos/logo.svg" 
+                                    alt="Saku AI" 
+                                    width={24} 
+                                    height={24} 
+                                    className="transition-all"
+                                />
+                            </Link>
+                        </div>
                         <SidebarTrigger />
                     </div>
                 </SidebarMenuItem>

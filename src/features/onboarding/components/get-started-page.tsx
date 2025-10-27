@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export function GetStartedPage() {
     const router = useRouter();
@@ -15,20 +16,8 @@ export function GetStartedPage() {
             <div className="max-w-md w-full mx-auto text-center px-6">
                 {/* Logo */}
                 <div className="mb-8">
-                    <div className="w-16 h-16 mx-auto bg-black rounded-lg flex items-center justify-center">
-                        <svg
-                            width="32"
-                            height="32"
-                            viewBox="0 0 32 32"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="text-white"
-                        >
-                            <path
-                                d="M8 12L16 4L24 12L20 16L24 20L16 28L8 20L12 16L8 12Z"
-                                fill="currentColor"
-                            />
-                        </svg>
+                    <div className="w-20 h-20 mx-auto flex items-center justify-center">
+                        <Image src="/logos/logo.svg" alt="Saku AI" width={80} height={80} />
                     </div>
                 </div>
 
