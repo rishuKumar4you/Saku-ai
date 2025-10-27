@@ -1,6 +1,5 @@
 "use client";
 
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { SaveIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -133,7 +132,6 @@ export const EditorHeader = ({workflowId}:{workflowId:string}) => {
     return (
         <header className="flex shrink-0 items-center h-14 
         px-4 border-b bg-background gap-2">
-            <SidebarTrigger />
             <div className="flex flex-row items-center justify-between 
             gap-x-4 w-full">
                 <EditorBreadcrumbs workflowId={workflowId} />

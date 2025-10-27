@@ -1,13 +1,14 @@
 "use client";
 
-import { NodeProps } from "@xyflow/react";
+import { NodeProps, useReactFlow } from "@xyflow/react";
 import { ClockIcon } from "lucide-react";
 import { BaseTriggerNode } from "../base-trigger-node";
 import { memo, useState } from "react";
 import { ScheduleTriggerDialog } from "./dialog";
 
-export const ScheduleTriggerNode = (props: NodeProps) => {
+export const ScheduleTriggerNode = memo((props: NodeProps) => {
     const [dialogOpen, setDialogOpen] = useState(false);
+    const { setNodes } = useReactFlow();
 
     const nodeStatus = "initial";
     const handleOpenSettings = () => setDialogOpen(true);
@@ -16,6 +17,24 @@ export const ScheduleTriggerNode = (props: NodeProps) => {
     const description = nodeData?.time && nodeData?.unit
         ? `Triggers every ${nodeData.time} ${nodeData.unit}`
         : "Not configured";
+
+    const handleSubmit = (values: { time: number; unit: string; enabled: boolean }) => {
+        setNodes((nodes) => nodes.map((node) => {
+            if (node.id === props.id) {
+                return {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        time: values.time,
+                        unit: values.unit,
+                        enabled: values.enabled,
+                    }
+                }
+            }
+            return node;
+        }));
+        setDialogOpen(false);
+    };
 
     return (
         <>
@@ -38,10 +57,6 @@ export const ScheduleTriggerNode = (props: NodeProps) => {
             />
         </>
     );
+});
 
-    function handleSubmit(values: { time?: number; unit?: string; enabled?: boolean }) {
-        // Update node data with form values
-        // This will be handled by the parent component or workflow state
-        setDialogOpen(false);
-    }
-};
+ScheduleTriggerNode.displayName = "ScheduleTriggerNode";

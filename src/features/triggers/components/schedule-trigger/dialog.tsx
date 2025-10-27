@@ -141,7 +141,17 @@ export const ScheduleTriggerDialog = ({
                                                 max="999999"
                                                 placeholder="1"
                                                 {...field}
-                                                onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    // Allow empty string for deletion, otherwise parse to number
+                                                    if (value === '') {
+                                                        field.onChange(undefined);
+                                                    } else {
+                                                        const parsed = parseInt(value);
+                                                        field.onChange(isNaN(parsed) ? undefined : parsed);
+                                                    }
+                                                }}
+                                                value={field.value ?? ''}
                                             />
                                         </FormControl>
                                         <FormDescription>

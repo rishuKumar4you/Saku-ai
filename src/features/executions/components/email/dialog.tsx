@@ -103,17 +103,17 @@ export const EmailDialog = ({
                     </DialogTitle>
                     <DialogDescription>
                         Configure email settings for sending emails via Google SMTP.
-                        {nodeId && (
-                            <div className="mt-2 p-2 bg-muted rounded-md">
-                                <p className="text-sm font-mono">
-                                    <span className="font-medium">Node ID:</span> {nodeId}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    This node receives data from previous nodes
-                                </p>
-                            </div>
-                        )}
                     </DialogDescription>
+                    {nodeId && (
+                        <div className="mt-2 p-2 bg-muted rounded-md">
+                            <p className="text-sm font-mono">
+                                <span className="font-medium">Node ID:</span> {nodeId}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                This node receives data from previous nodes
+                            </p>
+                        </div>
+                    )}
                 </DialogHeader>
                 <Form {...form}>
                     <form

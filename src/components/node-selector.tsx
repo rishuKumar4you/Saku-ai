@@ -35,23 +35,33 @@ export type NodeTypeOption = {
     label: string;
     description: string;
     icon: React.ComponentType<{ className?: string }> | string;
-
+    id: string; // Unique identifier for React keys
 };
 
 const triggerNodes: NodeTypeOption[] = [
     {
+        id: "manual-trigger",
+        type: NodeType.MANUAL_TRIGGER,
+        label: "Manual Trigger",
+        description: "Start workflow manually",
+        icon: MousePointerIcon,
+    },
+    {
+        id: "email-trigger",
         type: NodeType.EMAIL_TRIGGER,
         label: "Email Trigger",
         description: "Gmail, Outlook",
         icon: MailIcon,
     },
     {
+        id: "webhook-trigger",
         type: NodeType.HTTP_REQUEST,
         label: "Webhook",
         description: "Receive HTTP requests",
         icon: GlobeIcon,
     },
     {
+        id: "schedule-trigger",
         type: NodeType.SCHEDULE_TRIGGER,
         label: "Schedule",
         description: "Time-based triggers",
@@ -61,18 +71,21 @@ const triggerNodes: NodeTypeOption[] = [
 
 const aiProcessingNodes: NodeTypeOption[] = [
     {
+        id: "ai-openai",
         type: NodeType.AI_OPENAI,
         label: "OpenAI",
         description: "AI processing with OpenAI models",
         icon: BrainIcon,
     },
     {
+        id: "ai-anthropic",
         type: NodeType.AI_ANTHROPIC,
         label: "Anthropic",
         description: "AI processing with Anthropic Claude models",
         icon: BrainIcon,
     },
     {
+        id: "ai-gemini",
         type: NodeType.AI_GEMINI,
         label: "Gemini",
         description: "AI processing with Google Gemini models",
@@ -82,19 +95,22 @@ const aiProcessingNodes: NodeTypeOption[] = [
 
 const outputNodes: NodeTypeOption[] = [
     {
-        type: NodeType.HTTP_REQUEST,
-        label: "Slack Message",
-        description: "Post to channel",
-        icon: MessageSquareIcon,
-    },
-    {
+        id: "send-email",
         type: NodeType.EMAIL,
         label: "Send Email",
         description: "Send notifications",
         icon: SendIcon,
     },
     {
-        type: NodeType.MANUAL_TRIGGER,
+        id: "slack-message",
+        type: NodeType.HTTP_REQUEST,
+        label: "Slack Message",
+        description: "Post to channel",
+        icon: MessageSquareIcon,
+    },
+    {
+        id: "update-database",
+        type: NodeType.HTTP_REQUEST,
         label: "Update Database",
         description: "Store data",
         icon: DatabaseIcon,
@@ -183,7 +199,7 @@ export function NodeSelector({
 
                         return (
                             <div
-                                key={nodeType.type}
+                                key={nodeType.id}
                                 className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                                 onClick={() => handleNodeSelect(nodeType)}
                             >

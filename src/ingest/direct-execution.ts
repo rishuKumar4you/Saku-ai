@@ -148,7 +148,7 @@ async function executeWorkflowNodes(
 
     console.log(
         'Node execution result:',
-        {type: current.node.type, status: result.status});
+        {type: current.node.type, status: result?.status});
 
     // Add dependents to queue
     current.dependents.forEach((depId: string) => {
@@ -176,6 +176,10 @@ async function executeNode(
         data: {message: 'Manual trigger activated'},
       };
 
+    case 'EMAIL_TRIGGER':
+      return await executeEmailTriggerNode(
+          nodeData, credentials.get('GMAIL_OAUTH'));
+
     case 'AI_OPENAI':
       return await executeAINode(
           nodeData, 'openai', credentials.get('OPENAI_API_KEY'),
@@ -197,6 +201,13 @@ async function executeNode(
 
     case 'HTTP_REQUEST':
       return await executeHttpRequestNode(nodeData);
+
+    case 'SCHEDULE_TRIGGER':
+      return {
+        type: 'trigger',
+        status: 'completed',
+        data: {message: 'Schedule trigger activated'},
+      };
 
     default:
       return {
@@ -290,13 +301,37 @@ function replaceTemplateVariables(
 
   // Replace variables like {{nodeId.field}} with actual data
   return content.replace(/\{\{([^}]+)\}\}/g, (match, variable) => {
-    const [nodeId, field] = variable.split('.');
+    // Trim whitespace from the variable
+    const trimmedVariable = variable.trim();
+    const [nodeId, field] = trimmedVariable.split('.');
 
-    if (previousResults.has(nodeId)) {
-      const nodeResult = previousResults.get(nodeId);
-      if (nodeResult && nodeResult.data && nodeResult.data[field]) {
-        return nodeResult.data[field];
+    if (!nodeId || !field) {
+      console.warn('Invalid template variable format:', variable);
+      return match;
+    }
+
+    const trimmedNodeId = nodeId.trim();
+    const trimmedField = field.trim();
+
+    if (previousResults.has(trimmedNodeId)) {
+      const nodeResult = previousResults.get(trimmedNodeId);
+      console.log('Template variable lookup:', {
+        nodeId: trimmedNodeId,
+        field: trimmedField,
+        nodeResult,
+        hasData: !!nodeResult?.data,
+        fieldValue: nodeResult?.data?.[trimmedField]
+      });
+
+      if (nodeResult && nodeResult.data &&
+          nodeResult.data[trimmedField] !== undefined) {
+        return String(nodeResult.data[trimmedField]);
       }
+    } else {
+      console.warn('Node ID not found in previous results:', {
+        searchingFor: trimmedNodeId,
+        availableNodes: Array.from(previousResults.keys())
+      });
     }
 
     // If variable not found, return the original match
@@ -415,6 +450,162 @@ async function executeHttpRequestNode(nodeData: any) {
   } catch (error) {
     console.error('HTTP request execution error:', error);
     throw new Error(`HTTP request execution failed: ${
+        error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// Helper function to execute email trigger nodes
+async function executeEmailTriggerNode(nodeData: any, credential: any) {
+  if (!credential || !credential.accessToken) {
+    throw new Error('Missing Gmail OAuth token for email trigger');
+  }
+
+  try {
+    console.log('Executing email trigger node:', {
+      senderEmail: nodeData.senderEmail,
+      subjectFilter: nodeData.subjectFilter,
+      enabled: nodeData.enabled,
+    });
+
+    // Create Gmail API client with OAuth2
+    const oauth2Client = new googleapis.auth.OAuth2(
+        process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET,
+        process.env.BETTER_AUTH_URL + '/api/auth/gmail/callback');
+
+    // Set the credentials
+    oauth2Client.setCredentials({
+      access_token: credential.accessToken,
+      refresh_token: credential.refreshToken,
+    });
+
+    const gmail = googleapis.gmail({version: 'v1', auth: oauth2Client});
+
+    // Build query for Gmail API
+    let query = 'is:unread';  // Only get unread emails
+
+    if (nodeData.senderEmail) {
+      query += ` from:${nodeData.senderEmail}`;
+    }
+
+    if (nodeData.subjectFilter) {
+      query += ` subject:${nodeData.subjectFilter}`;
+    }
+
+    console.log('Gmail query:', query);
+    console.log('Waiting for matching email... (checking every 10 seconds)');
+
+    // Poll for emails - check every 10 seconds for up to 5 minutes
+    const maxAttempts = 30;  // 30 attempts * 10 seconds = 5 minutes max wait
+    const pollInterval = 10000;  // 10 seconds
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      console.log(`Checking for emails (attempt ${attempt}/${maxAttempts})...`);
+
+      // Search for emails matching the criteria
+      const response = await gmail.users.messages.list({
+        userId: 'me',
+        q: query,
+        maxResults: 1,  // Get the most recent matching email
+      });
+
+      const messages = response.data.messages || [];
+
+      if (messages.length === 0) {
+        // No email found yet, wait before next check
+        if (attempt < maxAttempts) {
+          console.log(`No matching email found yet. Waiting ${
+              pollInterval / 1000} seconds before next check...`);
+          await new Promise(resolve => setTimeout(resolve, pollInterval));
+          continue;
+        } else {
+          // Timeout reached
+          console.log(
+              'Email trigger timeout: No matching emails found after maximum wait time');
+          return {
+            type: 'trigger',
+            status: 'completed',
+            data: {
+              message:
+                  'No matching emails found within timeout period (5 minutes)',
+              triggered: false,
+              query,
+              maxWaitTime: '5 minutes',
+              timestamp: new Date().toISOString(),
+            },
+          };
+        }
+      }
+
+      // Found a matching email!
+      const messageId = messages[0].id;
+      const messageDetails = await gmail.users.messages.get({
+        userId: 'me',
+        id: messageId!,
+        format: 'full',
+      });
+
+      // Extract email details
+      const headers = messageDetails.data.payload?.headers || [];
+      const from =
+          headers.find(h => h.name?.toLowerCase() === 'from')?.value || '';
+      const subject =
+          headers.find(h => h.name?.toLowerCase() === 'subject')?.value || '';
+      const date =
+          headers.find(h => h.name?.toLowerCase() === 'date')?.value || '';
+
+      // Extract email body
+      let body = '';
+      if (messageDetails.data.payload?.parts) {
+        // Multipart email
+        const textPart = messageDetails.data.payload.parts.find(
+            part => part.mimeType === 'text/plain');
+        if (textPart?.body?.data) {
+          body = Buffer.from(textPart.body.data, 'base64').toString('utf-8');
+        }
+      } else if (messageDetails.data.payload?.body?.data) {
+        // Simple email
+        body = Buffer.from(messageDetails.data.payload.body.data, 'base64')
+                   .toString('utf-8');
+      }
+
+      console.log('Email trigger activated:', {
+        from,
+        subject,
+        messageId,
+        attemptNumber: attempt,
+      });
+
+      // Mark the email as read so it doesn't trigger again
+      await gmail.users.messages.modify({
+        userId: 'me',
+        id: messageId!,
+        requestBody: {
+          removeLabelIds: ['UNREAD'],
+        },
+      });
+
+      return {
+        type: 'trigger',
+        status: 'completed',
+        data: {
+          message: 'Email trigger activated',
+          triggered: true,
+          email: {
+            from,
+            subject,
+            body: body.substring(0, 500),  // Limit body length
+            date,
+            messageId,
+          },
+          content: body,  // Full content for template variables
+          waitTime: `${attempt * 10} seconds`,
+          timestamp: new Date().toISOString(),
+        },
+      };
+    }
+  } catch (error) {
+    console.error('Email trigger execution error:', error);
+    throw new Error(`Email trigger execution failed: ${
         error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

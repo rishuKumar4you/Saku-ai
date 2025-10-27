@@ -108,28 +108,6 @@ export const EditorBottomBar = ({ workflowId }: EditorBottomBarProps) => {
     startExecutionMutation.mutate({ workflowId });
   };
 
-  const handleDryRun = () => {
-    if (!editor) {
-      toast.error('Editor not available');
-      return;
-    }
-
-    const nodes = editor.getNodes();
-    const edges = editor.getEdges();
-
-    // Check if workflow is saved (has nodes with data)
-    const hasConfiguredNodes = nodes.some(node => 
-      node.data && Object.keys(node.data).length > 0
-    );
-
-    if (!hasConfiguredNodes) {
-      toast.error('Please configure and save the workflow before running dry run');
-      return;
-    }
-
-    // For now, just show a toast - you can implement actual dry run logic later
-    toast.success('Dry run completed successfully');
-  };
 
   return (
     <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200">
@@ -146,16 +124,6 @@ export const EditorBottomBar = ({ workflowId }: EditorBottomBarProps) => {
 
       {/* Action buttons */}
       <div className="flex items-center gap-3">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleDryRun}
-          className="flex items-center gap-2"
-        >
-          <PlayIcon className="w-4 h-4" />
-          Dry Run
-        </Button>
-        
         <Button
           size="sm"
           onClick={handleSave}
