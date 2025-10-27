@@ -21,6 +21,7 @@ import { ApiKeyForm } from '@/features/credentials/components/api-key-form';
 import { GmailOAuthForm } from '@/features/credentials/components/gmail-oauth-form';
 import { toast } from 'sonner';
 import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 
 export function CredentialsInterface() {
   const [activeTab, setActiveTab] = useState('ai-services');
@@ -112,7 +113,9 @@ export function CredentialsInterface() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <BrainIcon className="h-5 w-5" />
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <Image src="/openai.svg" alt="OpenAI" width={20} height={20} />
+                  </div>
                   OpenAI
                 </CardTitle>
                 <CardDescription>
@@ -168,7 +171,9 @@ export function CredentialsInterface() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <BrainIcon className="h-5 w-5" />
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <Image src="/gemini.svg" alt="Google Gemini" width={20} height={20} />
+                  </div>
                   Google Gemini
                 </CardTitle>
                 <CardDescription>
@@ -224,7 +229,9 @@ export function CredentialsInterface() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <BrainIcon className="h-5 w-5" />
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <Image src="/claude.svg" alt="Anthropic Claude" width={20} height={20} />
+                  </div>
                   Anthropic
                 </CardTitle>
                 <CardDescription>
@@ -282,7 +289,9 @@ export function CredentialsInterface() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <MailIcon className="h-5 w-5" />
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <Image src="/gmail.svg" alt="Gmail" width={20} height={20} />
+                </div>
                 Gmail Integration
               </CardTitle>
               <CardDescription>

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Image from "next/image";
 
 type Connector = { key: string; name: string; connected: boolean };
 
@@ -12,9 +13,9 @@ export const IntegrationsInterface = () => {
     const [connectors, setConnectors] = useState<Connector[]>([]);
     const [busy, setBusy] = useState<Record<string, boolean>>({});
     const googleServices = useMemo(() => [
-        { key: "gmail", name: "Gmail", icon: "📧" },
-        { key: "calendar", name: "Google Calendar", icon: "📅" },
-        { key: "drive", name: "Google Drive", icon: "💾" },
+        { key: "gmail", name: "Gmail", icon: "/gmail.svg" },
+        { key: "calendar", name: "Google Calendar", icon: "/google-calendar.svg" },
+        { key: "drive", name: "Google Drive", icon: "/google-drive.svg" },
     ], []);
 
     async function refresh() {
@@ -100,7 +101,9 @@ export const IntegrationsInterface = () => {
                 {filtered.map(svc => (
                     <div key={svc.key} className="flex items-center justify-between p-4 border rounded">
                         <div className="flex items-center gap-3">
-                            <div className="text-2xl">{svc.icon}</div>
+                            <div className="w-10 h-10 flex items-center justify-center">
+                                <Image src={svc.icon} alt={svc.name} width={40} height={40} />
+                            </div>
                             <div>
                                 <div className="font-medium">{svc.name}</div>
                                 <div className="text-sm text-muted-foreground">{isConnected(svc.key) ? "Connected" : "Disconnected"}</div>
