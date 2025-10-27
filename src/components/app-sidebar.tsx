@@ -7,11 +7,11 @@ import {
     LogOutIcon,
     StarIcon,
     HomeIcon,
-    MessageCircleIcon,
-    UsersIcon,
+    MessageSquare,
+    GitBranch,
+    CalendarRange,
     BarChart3Icon,
     SettingsIcon,
-    WorkflowIcon,
 } from "lucide-react";
 import Image from "next/image";     
 import Link from "next/link";
@@ -42,21 +42,24 @@ const menuItems = [
                 title: "Home",
                 url: "/",
                 icon: HomeIcon,
+                customIcon: "/homeIcon.svg",
             },
             {
                 title: "New Chat",
                 url: "/chat",
-                icon: MessageCircleIcon,
+                icon: MessageSquare,
+                customIcon: "/chatIcon.svg",
             },
             {
                 title: "Workflows",
                 url: "/workflows",
-                icon: WorkflowIcon,
+                icon: GitBranch,
+                customIcon: "/workflowIcon.svg",
             },
             {
                 title: "Meetings",
                 url: "/meetings",
-                icon: UsersIcon,
+                icon: CalendarRange,
             },
             {
                 title: "Insights",
@@ -140,7 +143,17 @@ export const AppSidebar = () => {
                                         asChild
                                         className={`gap-x-4 h-10 px-4`}>
                                     <Link href={item.url} prefetch>
-                                        <item.icon className="size-4" />
+                                        {(item as any).customIcon ? (
+                                            <Image 
+                                                src={(item as any).customIcon} 
+                                                alt={item.title}
+                                                width={16}
+                                                height={16}
+                                                className={`size-4 ${item.title === "Workflows" ? "-rotate-90" : ""}`}
+                                            />
+                                        ) : (
+                                            <item.icon className="size-4" />
+                                        )}
                                         <span>{item.title}</span>
                                     </Link>
                                     </SidebarMenuButton>
