@@ -305,7 +305,7 @@ export const ChatInterface = () => {
                 {isWelcomeVisible && messages.length === 0 ? (
                     <WelcomeSection onStartChat={handleSendMessage} />
                 ) : (
-                    <ChatMessages messages={messages} />
+                    <ChatMessages messages={messages} isStreaming={isStreaming} />
                 )}
             </div>
             <ChatInput 

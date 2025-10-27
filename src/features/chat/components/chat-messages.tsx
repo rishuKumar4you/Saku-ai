@@ -24,14 +24,48 @@ interface Message {
 
 interface ChatMessagesProps {
     messages: Message[];
+    isStreaming?: boolean;
 }
 
-export const ChatMessages = ({ messages }: ChatMessagesProps) => {
+// Typing Animation Component
+const TypingIndicator = () => {
+    return (
+        <div className="flex gap-2">
+            {/* AI Avatar */}
+            <div className="flex-shrink-0 mt-1">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center bg-muted">
+                    <Image 
+                        src="/logos/logo.svg" 
+                        alt="Saku AI" 
+                        width={20} 
+                        height={20}
+                    />
+                </div>
+            </div>
+            
+            {/* Animated Dots */}
+            <div className="max-w-[85%] sm:max-w-[75%]">
+                <Card className="p-4 bg-background border">
+                    <div className="flex items-center gap-1">
+                        <div className="flex gap-1">
+                            <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms', animationDuration: '1s' }}></div>
+                            <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms', animationDuration: '1s' }}></div>
+                            <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms', animationDuration: '1s' }}></div>
+                        </div>
+                        <span className="text-xs text-muted-foreground ml-2">Saku is thinking...</span>
+                    </div>
+                </Card>
+            </div>
+        </div>
+    );
+};
+
+export const ChatMessages = ({ messages, isStreaming = false }: ChatMessagesProps) => {
     const bottomRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
+    }, [messages, isStreaming]);
 
     return (
         <ScrollArea className="flex-1 px-3 py-3 sm:px-6 sm:py-4">
@@ -62,7 +96,18 @@ export const ChatMessages = ({ messages }: ChatMessagesProps) => {
                                 </Card>
                             ) : (
                                 <Card className="p-4 bg-background border">
-                                    <p className="text-sm text-foreground whitespace-pre-wrap break-words">{message.content}</p>
+                                    {message.content ? (
+                                        <p className="text-sm text-foreground whitespace-pre-wrap break-words">{message.content}</p>
+                                    ) : (
+                                        // Show typing indicator for empty bot messages
+                                        <div className="flex items-center gap-1">
+                                            <div className="flex gap-1">
+                                                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                                                <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{ animationDelay: '150ms' }}></div>
+                                                <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{ animationDelay: '300ms' }}></div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </Card>
                             )}
                             <div className={`text-xs text-muted-foreground mt-1 ${message.isUser ? 'text-right' : 'text-left'}`}>
@@ -71,6 +116,12 @@ export const ChatMessages = ({ messages }: ChatMessagesProps) => {
                         </div>
                     </div>
                 ))}
+                
+                {/* Show typing indicator when streaming but no assistant message yet */}
+                {isStreaming && messages.length > 0 && messages[messages.length - 1].isUser && (
+                    <TypingIndicator />
+                )}
+                
                 <div ref={bottomRef} />
             </div>
         </ScrollArea>
