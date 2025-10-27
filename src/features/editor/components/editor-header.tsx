@@ -16,6 +16,7 @@ import { useWorkflow, useUpdateWorkflow, useUpdateWorkflowName } from "@/feature
 import { useAtomValue } from 'jotai';
 import { editorAtom } from "../store/atoms";
 import { ExecuteWorkflowButton } from "./execute-workflow-button";
+import { TriggerManagerButton } from "./trigger-manager-button";
 
 export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
     // This component is now empty since buttons moved to bottom bar
@@ -135,7 +136,10 @@ export const EditorHeader = ({workflowId}:{workflowId:string}) => {
             <div className="flex flex-row items-center justify-between 
             gap-x-4 w-full">
                 <EditorBreadcrumbs workflowId={workflowId} />
-                <EditorSaveButton workflowId={workflowId}/>
+                <div className="flex items-center gap-2">
+                    <TriggerManagerButton workflowId={workflowId} />
+                    <EditorSaveButton workflowId={workflowId}/>
+                </div>
             </div>
         </header>
     );
