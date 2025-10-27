@@ -59,11 +59,11 @@ export const execute = inngest.createFunction(
 
 // New workflow execution function
 export const executeWorkflow = inngest.createFunction(
-    {id: 'execute-workflow'},
+    {id: 'execute-workflow', cancelOn: [{event: 'workflow/cancel'}]},
     {event: 'workflow/execute'},
 
     async ({event, step}) => {
-      const {executionId, workflowId, userId} = event.data;
+      const {executionId, workflowId, userId, triggerData} = event.data;
 
       console.log(
           'Starting workflow execution:', {executionId, workflowId, userId});
@@ -106,19 +106,13 @@ export const executeWorkflow = inngest.createFunction(
           });
         });
 
-        // Build execution graph
-        const executionGraph =
-            await step.run('build-execution-graph', async () => {
-              const graph =
-                  buildExecutionGraph(workflow.nodes, workflow.connections);
-              console.log('Built execution graph:', graph);
-              return graph as Map<string, any>;
-            });
-
-        // Execute workflow nodes
-        const results = await step.run('execute-nodes', async () => {
-          return executeWorkflowNodes(
-              executionGraph as Map<string, any>, credentials);
+        // Build execution graph and execute nodes in a single step
+        // (Maps don't serialize well across Inngest steps)
+        const results = await step.run('execute-workflow', async () => {
+          const graph =
+              buildExecutionGraph(workflow.nodes, workflow.connections);
+          console.log('Built execution graph');
+          return executeWorkflowNodes(graph, credentials, triggerData);
         });
 
         // Update execution with results
@@ -185,7 +179,7 @@ function buildExecutionGraph(
 
 // Helper function to execute workflow nodes
 async function executeWorkflowNodes(
-    graph: Map<string, any>, credentials: any[]) {
+    graph: Map<string, any>, credentials: any[], triggerData?: any) {
   const results = new Map();
   const executed = new Set();
   const credentialMap = new Map();
@@ -199,35 +193,84 @@ async function executeWorkflowNodes(
   const triggerNodes =
       Array.from(graph.values()).filter(node => node.dependencies.length === 0);
 
-  // Execute nodes in topological order
-  const queue = [...triggerNodes];
+  // If triggerData is provided, inject it into the first trigger node result
+  if (triggerData && triggerNodes.length > 0) {
+    const firstTriggerNode = triggerNodes[0];
+    results.set(firstTriggerNode.node.id, {
+      type: 'trigger',
+      status: 'completed',
+      data: triggerData,
+    });
+    executed.add(firstTriggerNode.node.id);
 
-  while (queue.length > 0) {
-    const current = queue.shift();
-
-    if (executed.has(current.node.id)) {
-      continue;
-    }
-
-    // Check if all dependencies are executed
-    const allDepsExecuted =
-        current.dependencies.every((depId: string) => executed.has(depId));
-    if (!allDepsExecuted) {
-      continue;
-    }
-
-    // Execute the node
-    const result = await executeNode(current.node, results, credentialMap);
-    results.set(current.node.id, result);
-    executed.add(current.node.id);
-
-    // Add dependents to queue
-    current.dependents.forEach((depId: string) => {
+    // Add dependents of the first trigger to queue
+    const queue: any[] = [];
+    firstTriggerNode.dependents.forEach((depId: string) => {
       const dependent = graph.get(depId);
       if (dependent && !executed.has(depId)) {
         queue.push(dependent);
       }
     });
+
+    // Execute remaining nodes
+    while (queue.length > 0) {
+      const current = queue.shift();
+
+      if (executed.has(current.node.id)) {
+        continue;
+      }
+
+      // Check if all dependencies are executed
+      const allDepsExecuted =
+          current.dependencies.every((depId: string) => executed.has(depId));
+      if (!allDepsExecuted) {
+        continue;
+      }
+
+      // Execute the node
+      const result = await executeNode(current.node, results, credentialMap);
+      results.set(current.node.id, result);
+      executed.add(current.node.id);
+
+      // Add dependents to queue
+      current.dependents.forEach((depId: string) => {
+        const dependent = graph.get(depId);
+        if (dependent && !executed.has(depId)) {
+          queue.push(dependent);
+        }
+      });
+    }
+  } else {
+    // Execute nodes in topological order (normal flow without trigger data)
+    const queue = [...triggerNodes];
+
+    while (queue.length > 0) {
+      const current = queue.shift();
+
+      if (executed.has(current.node.id)) {
+        continue;
+      }
+
+      // Check if all dependencies are executed
+      const allDepsExecuted =
+          current.dependencies.every((depId: string) => executed.has(depId));
+      if (!allDepsExecuted) {
+        continue;
+      }
+
+      // Execute the node
+      const result = await executeNode(current.node, results, credentialMap);
+      results.set(current.node.id, result);
+      executed.add(current.node.id);
+
+      // Add dependents to queue
+      current.dependents.forEach((depId: string) => {
+        const dependent = graph.get(depId);
+        if (dependent && !executed.has(depId)) {
+          queue.push(dependent);
+        }
+      });
+    }
   }
 
   return Object.fromEntries(results);
@@ -248,19 +291,8 @@ async function executeNode(
       };
 
     case 'EMAIL_TRIGGER':
-      return {
-        type: 'trigger',
-        status: 'completed',
-        data: {
-          message: 'Email trigger activated',
-          content: nodeData.senderEmail ?
-              `Email from: ${nodeData.senderEmail}` :
-              'New email received',
-          senderEmail: nodeData.senderEmail,
-          subjectFilter: nodeData.subjectFilter,
-          enabled: nodeData.enabled,
-        },
-      };
+      return await executeEmailTriggerNode(
+          nodeData, credentials.get('GMAIL_OAUTH'));
 
     case 'SCHEDULE_TRIGGER':
       return {
@@ -388,25 +420,43 @@ function replaceTemplateVariables(
 
   // Replace variables like {{nodeId.field}} with actual data
   return content.replace(/\{\{([^}]+)\}\}/g, (match, variable) => {
-    const [nodeId, field] = variable.split('.');
+    // Trim whitespace from the variable string
+    const trimmedVariable = variable.trim();
+    const [nodeId, field] = trimmedVariable.split('.');
 
-    console.log(`Looking for nodeId: ${nodeId}, field: ${field}`);
+    console.log(`Looking for nodeId: "${nodeId}", field: "${
+        field}" (original: "${variable}")`);
+
+    // Validate that we have both nodeId and field
+    if (!nodeId || !field) {
+      console.warn(`Invalid template variable format: ${
+          match}. Expected format: {{nodeId.field}}`);
+      return match;
+    }
 
     if (previousResults.has(nodeId)) {
       const nodeResult = previousResults.get(nodeId);
       console.log(`Found node result for ${nodeId}:`, nodeResult);
 
-      if (nodeResult && nodeResult.data && nodeResult.data[field]) {
-        const replacement = nodeResult.data[field];
+      const hasData = nodeResult && nodeResult.data;
+      const fieldValue = hasData ? nodeResult.data[field] : undefined;
+
+      console.log(`  - hasData: ${hasData}`);
+      console.log(`  - fieldValue: ${fieldValue}`);
+
+      if (fieldValue !== undefined && fieldValue !== null) {
+        const replacement = String(fieldValue);
         console.log(`Replacing ${match} with:`, replacement);
         return replacement;
-      } else if (nodeResult && nodeResult.data) {
+      } else if (hasData) {
         console.log(
-            `Field ${field} not found in data. Available fields:`,
+            `Field "${field}" not found in data. Available fields:`,
             Object.keys(nodeResult.data));
       }
     } else {
-      console.log(`Node ${nodeId} not found in previous results`);
+      console.warn(
+          `Node "${nodeId}" not found in previous results. Available nodes:`,
+          Array.from(previousResults.keys()));
     }
 
     // If variable not found, return the original match
@@ -520,3 +570,311 @@ async function executeHttpRequestNode(nodeData: any) {
     },
   };
 }
+
+// Helper function to execute email trigger nodes (for one-time execution)
+async function executeEmailTriggerNode(nodeData: any, credential: any) {
+  if (!credential || !credential.accessToken) {
+    throw new Error('Missing Gmail OAuth token for email trigger');
+  }
+
+  try {
+    console.log('Executing email trigger node:', {
+      senderEmail: nodeData.senderEmail,
+      subjectFilter: nodeData.subjectFilter,
+      enabled: nodeData.enabled,
+    });
+
+    // Create Gmail API client with OAuth2
+    const oauth2Client = new googleapis.auth.OAuth2(
+        process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET,
+        process.env.BETTER_AUTH_URL + '/api/auth/gmail/callback');
+
+    // Set the credentials
+    oauth2Client.setCredentials({
+      access_token: credential.accessToken,
+      refresh_token: credential.refreshToken,
+    });
+
+    const gmail = googleapis.gmail({version: 'v1', auth: oauth2Client});
+
+    // Build query for Gmail API
+    let query = 'is:unread';  // Only get unread emails
+
+    if (nodeData.senderEmail) {
+      query += ` from:${nodeData.senderEmail}`;
+    }
+
+    if (nodeData.subjectFilter) {
+      query += ` subject:${nodeData.subjectFilter}`;
+    }
+
+    console.log('Gmail query:', query);
+    console.log('Waiting for matching email...');
+
+    // For Inngest background jobs, we can wait longer
+    // Poll for emails - check every 30 seconds for up to 1 hour
+    const maxAttempts = 120;     // 120 attempts * 30 seconds = 1 hour max wait
+    const pollInterval = 30000;  // 30 seconds
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      console.log(`Checking for emails (attempt ${attempt}/${maxAttempts})...`);
+
+      // Search for emails matching the criteria
+      const response = await gmail.users.messages.list({
+        userId: 'me',
+        q: query,
+        maxResults: 1,  // Get the most recent matching email
+      });
+
+      const messages = response.data.messages || [];
+
+      if (messages.length === 0) {
+        // No email found yet, wait before next check
+        if (attempt < maxAttempts) {
+          console.log(`No matching email found yet. Waiting ${
+              pollInterval / 1000} seconds before next check...`);
+          await new Promise(resolve => setTimeout(resolve, pollInterval));
+          continue;
+        } else {
+          // Timeout reached
+          console.log(
+              'Email trigger timeout: No matching emails found after maximum wait time');
+          return {
+            type: 'trigger',
+            status: 'completed',
+            data: {
+              message:
+                  'No matching emails found within timeout period (1 hour)',
+              triggered: false,
+              query,
+              maxWaitTime: '1 hour',
+              timestamp: new Date().toISOString(),
+            },
+          };
+        }
+      }
+
+      // Found a matching email!
+      const messageId = messages[0].id;
+      const messageDetails = await gmail.users.messages.get({
+        userId: 'me',
+        id: messageId!,
+        format: 'full',
+      });
+
+      // Extract email details
+      const headers = messageDetails.data.payload?.headers || [];
+      const from =
+          headers.find(h => h.name?.toLowerCase() === 'from')?.value || '';
+      const subject =
+          headers.find(h => h.name?.toLowerCase() === 'subject')?.value || '';
+      const date =
+          headers.find(h => h.name?.toLowerCase() === 'date')?.value || '';
+
+      // Extract email body
+      let body = '';
+      if (messageDetails.data.payload?.parts) {
+        // Multipart email
+        const textPart = messageDetails.data.payload.parts.find(
+            part => part.mimeType === 'text/plain');
+        if (textPart?.body?.data) {
+          body = Buffer.from(textPart.body.data, 'base64').toString('utf-8');
+        }
+      } else if (messageDetails.data.payload?.body?.data) {
+        // Simple email
+        body = Buffer.from(messageDetails.data.payload.body.data, 'base64')
+                   .toString('utf-8');
+      }
+
+      console.log('Email trigger activated:', {
+        from,
+        subject,
+        messageId,
+        attemptNumber: attempt,
+      });
+
+      // Mark the email as read so it doesn't trigger again
+      await gmail.users.messages.modify({
+        userId: 'me',
+        id: messageId!,
+        requestBody: {
+          removeLabelIds: ['UNREAD'],
+        },
+      });
+
+      return {
+        type: 'trigger',
+        status: 'completed',
+        data: {
+          message: 'Email trigger activated',
+          triggered: true,
+          email: {
+            from,
+            subject,
+            body: body.substring(0, 500),  // Limit body length
+            date,
+            messageId,
+          },
+          content: body,  // Full content for template variables
+          waitTime: `${attempt * 30} seconds`,
+          timestamp: new Date().toISOString(),
+        },
+      };
+    }
+  } catch (error) {
+    console.error('Email trigger execution error:', error);
+    throw new Error(`Email trigger execution failed: ${
+        error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// Continuous email trigger function (runs indefinitely)
+export const emailTriggerMonitor = inngest.createFunction(
+    {id: 'email-trigger-monitor', cancelOn: [{event: 'workflow/cancel'}]},
+    {event: 'workflow/email-trigger/start'},
+
+    async ({event, step}) => {
+      const {workflowId, userId, nodeId, nodeData} = event.data;
+
+      console.log('Starting continuous email trigger monitor:', {
+        workflowId,
+        userId,
+        nodeId,
+      });
+
+      // Get user credentials
+      const credentials = await step.run('get-credentials', async () => {
+        return prisma.credential.findFirst({
+          where: {
+            userId,
+            type: 'GMAIL_OAUTH',
+            isActive: true,
+          },
+        });
+      });
+
+      if (!credentials) {
+        throw new Error('Gmail OAuth credentials not found');
+      }
+
+      // Continuously monitor for emails
+      while (true) {
+        try {
+          // Check for matching emails
+          const result =
+              await step.run(`check-email-${Date.now()}`, async () => {
+                return executeEmailTriggerNode(nodeData, credentials);
+              });
+
+          // If email was triggered, execute the workflow
+          if (result && result.data && result.data.triggered) {
+            console.log('Email trigger activated, executing workflow');
+
+            // Create a new execution
+            const execution = await step.run('create-execution', async () => {
+              return prisma.execution.create({
+                data: {
+                  workflowId,
+                  status: ExecutionStatus.PENDING,
+                },
+              });
+            });
+
+            // Trigger workflow execution
+            await step.run('trigger-workflow', async () => {
+              return inngest.send({
+                name: 'workflow/execute',
+                data: {
+                  executionId: execution.id,
+                  workflowId,
+                  userId,
+                  triggerData: result.data,
+                },
+              });
+            });
+          }
+
+          // Wait before next check (5 minutes)
+          await step.sleep('wait-before-next-check', '5m');
+
+        } catch (error) {
+          console.error('Error in email trigger monitor:', error);
+          // Wait before retrying
+          await step.sleep('wait-after-error', '1m');
+        }
+      }
+    },
+);
+
+// Schedule trigger function (runs on a schedule)
+export const scheduleTriggerMonitor = inngest.createFunction(
+    {id: 'schedule-trigger-monitor', cancelOn: [{event: 'workflow/cancel'}]},
+    {event: 'workflow/schedule-trigger/start'},
+
+    async ({event, step}) => {
+      const {workflowId, userId, nodeId, nodeData} = event.data;
+
+      console.log('Starting schedule trigger monitor:', {
+        workflowId,
+        userId,
+        nodeId,
+        schedule: nodeData,
+      });
+
+      // Continuously run on schedule
+      while (true) {
+        try {
+          console.log('Schedule trigger activated, executing workflow');
+
+          // Create a new execution
+          const execution = await step.run('create-execution', async () => {
+            return prisma.execution.create({
+              data: {
+                workflowId,
+                status: ExecutionStatus.PENDING,
+              },
+            });
+          });
+
+          // Trigger workflow execution
+          await step.run('trigger-workflow', async () => {
+            return inngest.send({
+              name: 'workflow/execute',
+              data: {
+                executionId: execution.id,
+                workflowId,
+                userId,
+                triggerData: {
+                  message: 'Schedule trigger activated',
+                  content: `Scheduled trigger executed at ${
+                      new Date().toISOString()}`,
+                  timestamp: new Date().toISOString(),
+                },
+              },
+            });
+          });
+
+          // Wait based on the configured interval
+          const time = nodeData.time || 1;
+          const unit = nodeData.unit || 'minutes';
+
+          let waitTime = '1m';
+          if (unit === 'minutes') {
+            waitTime = `${time}m`;
+          } else if (unit === 'hours') {
+            waitTime = `${time}h`;
+          } else if (unit === 'days') {
+            waitTime = `${time * 24}h`;
+          }
+
+          console.log(`Waiting ${waitTime} before next execution`);
+          await step.sleep('wait-for-next-schedule', waitTime);
+
+        } catch (error) {
+          console.error('Error in schedule trigger monitor:', error);
+          // Wait before retrying
+          await step.sleep('wait-after-error', '1m');
+        }
+      }
+    },
+);

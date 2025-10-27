@@ -110,50 +110,23 @@ export const executionsRouter = createTRPCRouter({
                  },
                });
 
-               // For development, execute directly without Inngest
-               if (process.env.NODE_ENV === 'development') {
-                 console.log('Development mode: executing workflow directly');
+               // Trigger background execution with Inngest
+               console.log('Triggering Inngest execution:', {
+                 executionId: execution.id,
+                 workflowId: input.workflowId,
+                 userId: ctx.auth.user.id,
+               });
 
-                 // Execute workflow directly in development
-                 try {
-                   const {executeWorkflowDirectly} =
-                       await import('@/ingest/direct-execution');
-                   await executeWorkflowDirectly(
-                       execution.id, workflow, ctx.auth.user.id);
-                 } catch (error) {
-                   console.error('Direct execution error:', error);
-                   // Update execution with error
-                   await prisma.execution.update({
-                     where: {id: execution.id},
-                     data: {
-                       status: ExecutionStatus.FAILED,
-                       error: error instanceof Error ? error.message :
-                                                       'Unknown error',
-                       completedAt: new Date(),
-                       updatedAt: new Date(),
-                     },
-                   });
-                   throw error;
-                 }
-               } else {
-                 // Trigger background execution with Inngest
-                 console.log('Triggering Inngest execution:', {
+               await inngest.send({
+                 name: 'workflow/execute',
+                 data: {
                    executionId: execution.id,
                    workflowId: input.workflowId,
                    userId: ctx.auth.user.id,
-                 });
+                 },
+               });
 
-                 await inngest.send({
-                   name: 'workflow/execute',
-                   data: {
-                     executionId: execution.id,
-                     workflowId: input.workflowId,
-                     userId: ctx.auth.user.id,
-                   },
-                 });
-
-                 console.log('Inngest execution triggered successfully');
-               }
+               console.log('Inngest execution triggered successfully');
 
                return execution;
              }),

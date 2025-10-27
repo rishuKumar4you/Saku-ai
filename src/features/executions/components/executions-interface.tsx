@@ -1,7 +1,7 @@
 "use client";
 
 import { useTRPC } from '@/trpc/client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,18 +12,49 @@ import {
   ClockIcon, 
   AlertCircleIcon,
   RefreshCwIcon,
-  EyeIcon
+  EyeIcon,
+  StopCircleIcon
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ExecutionStatus } from '@/generated/prisma';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
 export function ExecutionsInterface() {
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
   const [selectedExecution, setSelectedExecution] = useState<string | null>(null);
   
   const { data: executions, isLoading, refetch } = useQuery(
     trpc.executions.getAll.queryOptions()
+  );
+
+  // Auto-refresh every 5 seconds if there are running or pending executions
+  useEffect(() => {
+    const hasActiveExecutions = executions?.some(
+      (exec) => exec.status === ExecutionStatus.RUNNING || exec.status === ExecutionStatus.PENDING
+    );
+
+    if (hasActiveExecutions) {
+      const interval = setInterval(() => {
+        refetch();
+      }, 5000); // Refresh every 5 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [executions, refetch]);
+
+  // Cancel execution mutation
+  const cancelMutation = useMutation(
+    trpc.executions.cancel.mutationOptions({
+      onSuccess: () => {
+        toast.success('Execution cancelled successfully');
+        queryClient.invalidateQueries({ queryKey: [['executions', 'getAll']] });
+      },
+      onError: (error: any) => {
+        toast.error(`Failed to cancel execution: ${error.message}`);
+      },
+    })
   );
 
   const getStatusIcon = (status: ExecutionStatus) => {
@@ -111,6 +142,18 @@ export function ExecutionsInterface() {
                   <Badge className={getStatusColor(execution.status)}>
                     {execution.status.toLowerCase()}
                   </Badge>
+                  {(execution.status === ExecutionStatus.RUNNING || 
+                    execution.status === ExecutionStatus.PENDING) && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => cancelMutation.mutate({ executionId: execution.id })}
+                      disabled={cancelMutation.isPending}
+                    >
+                      <StopCircleIcon className="h-4 w-4 mr-1" />
+                      Cancel
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="outline"
